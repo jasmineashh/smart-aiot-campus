@@ -124,6 +124,9 @@ app.UseAuthorization();
 
 app.MapAuthEndpoints();
 
+app.MapParkingEndpoints();
+
+
 
 // ==========================================
 // TEMPORARY TEST ENDPOINT
