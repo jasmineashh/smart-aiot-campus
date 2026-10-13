@@ -4,11 +4,12 @@ using Campus.Api.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
+// ==========================================
+// DATABASE CONFIGURATION
+// ==========================================
 
-// PostgreSQL database configuration
 var connectionString = builder.Configuration
     .GetConnectionString("CampusDatabase")
     ?? throw new InvalidOperationException(
@@ -19,7 +20,20 @@ builder.Services.AddDbContext<CampusDbContext>(options =>
     options.UseNpgsql(connectionString)
 );
 
-// University account and role management
+// ==========================================
+// AUTHENTICATION & AUTHORIZATION
+// ==========================================
+
+builder.Services
+    .AddAuthentication(IdentityConstants.ApplicationScheme)
+    .AddIdentityCookies();
+
+builder.Services.AddAuthorization();
+
+// ==========================================
+// ASP.NET CORE IDENTITY
+// ==========================================
+
 builder.Services
     .AddIdentityCore<ApplicationUser>(options =>
     {
@@ -35,14 +49,18 @@ builder.Services
     .AddEntityFrameworkStores<CampusDbContext>()
     .AddSignInManager();
 
+// ==========================================
+// API SERVICES
+// ==========================================
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ==========================================
+// HTTP REQUEST PIPELINE
+// ==========================================
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -50,28 +68,43 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Authenticate users before checking permissions
+app.UseAuthentication();
+app.UseAuthorization();
+
+// ==========================================
+// TEMPORARY TEST ENDPOINT
+// ==========================================
+
 var summaries = new[]
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
+    "Freezing", "Bracing", "Chilly", "Cool",
+    "Mild", "Warm", "Balmy", "Hot",
+    "Sweltering", "Scorching"
 };
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
+    var forecast = Enumerable.Range(1, 5)
+        .Select(index => new WeatherForecast(
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
             Random.Shared.Next(-20, 55),
             summaries[Random.Shared.Next(summaries.Length)]
         ))
         .ToArray();
+
     return forecast;
 })
 .WithName("GetWeatherForecast");
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+record WeatherForecast(
+    DateOnly Date,
+    int TemperatureC,
+    string? Summary
+)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    public int TemperatureF =>
+        32 + (int)(TemperatureC / 0.5556);
 }
