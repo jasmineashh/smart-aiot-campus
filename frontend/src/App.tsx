@@ -9,6 +9,9 @@ import {
 
 import './App.css'
 
+import CampusDashboard from './components/layout/CampusDashboard'
+
+
 function App() {
   const [universityId, setUniversityId] = useState('')
   const [password, setPassword] = useState('')
@@ -100,6 +103,17 @@ function App() {
       setLoading(false)
     }
   }
+  
+if (!checkingSession && user) {
+  return (
+    <CampusDashboard
+      user={user}
+      onLogout={handleLogout}
+      loggingOut={loading}
+    />
+  )
+}
+
 
   return (
     <main className="login-page">
