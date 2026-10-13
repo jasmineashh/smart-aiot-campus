@@ -1,0 +1,31 @@
+
+:root {
+  /* ParkFlow-inspired color palette */
+  --color-primary: #0B5FD4;
+  --color-primary-light: #B5CCF2;
+  --color-background: #F9F8F9;
+  --color-surface: #FFFFFF;
+
+  --color-text: #040404;
+  --color-text-secondary: #6B7280;
+
+  --color-success: #306738;
+  --color-success-light: #E8F3E8;
+
+  --color-border: #E5E7EB;
+  --color-neutral: #A0A6A1;
+
+  /* Supporting semantic colors */
+  --color-warning: #F59E0B;
+  --color-error: #DC2626;
+
+  /* Shared design tokens */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 30px;
+
+  --shadow-card: 0 8px 28px rgba(0, 0, 0, 0.045);
+
+  --font-primary: "Inter", "Segoe UI", Arial, sans-serif;
+}
