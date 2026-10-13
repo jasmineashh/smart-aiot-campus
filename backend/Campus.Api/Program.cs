@@ -65,12 +65,21 @@ var app = builder.Build();
 // INITIAL UNIVERSITY ROLES
 // ==========================================
 
+
 using (var scope = app.Services.CreateScope())
 {
     await IdentityRoleSeeder.SeedRolesAsync(
         scope.ServiceProvider
     );
+
+    if (app.Environment.IsDevelopment())
+    {
+        await DevelopmentUserSeeder.SeedAsync(
+            scope.ServiceProvider
+        );
+    }
 }
+
 
 
 // ==========================================
