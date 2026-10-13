@@ -3,6 +3,9 @@ import { useState } from 'react'
 import type { CampusUser } from '../../services/authService'
 import './CampusDashboard.css'
 
+import ParkingPage from '../../pages/parking/ParkingPage'
+
+
 interface DashboardProps {
   user: CampusUser
   onLogout: () => Promise<void>
@@ -83,26 +86,73 @@ export default function CampusDashboard({
             MAIN MENU
           </span>
 
-          <div className="sidebar-link active">
-            <span className="sidebar-link-icon">⌂</span>
-            Overview
-          </div>
+          
+<button
+  type="button"
+  className={
+    selectedModule === null
+      ? 'sidebar-link active'
+      : 'sidebar-link'
+  }
+  onClick={() => setSelectedModule(null)}
+  style={{
+    border: 'none',
+    width: '100%',
+    background:
+      selectedModule === null
+        ? '#EAF2FE'
+        : 'transparent',
+    textAlign: 'left',
+    cursor: 'pointer',
+    font: 'inherit',
+    fontSize: '13px',
+  }}
+>
+  <span className="sidebar-link-icon">⌂</span>
+  Overview
+</button>
+
 
           <span className="sidebar-section-label">
             CAMPUS SYSTEMS
           </span>
 
-          {modules.map((module) => (
-            <div
-              className="sidebar-link"
-              key={module.title}
-            >
-              <span className="sidebar-link-icon">
-                {module.icon}
-              </span>
-              {module.title}
-            </div>
-          ))}
+          
+          
+           {modules.map((module) => (
+             <button
+    type="button"
+    className={
+      selectedModule === module.title
+        ? 'sidebar-link active'
+        : 'sidebar-link'
+ 
+    }
+    key={module.title}
+    disabled={!module.available}
+    onClick={() => setSelectedModule(module.title)}
+    style={{
+      border: 'none',
+      width: '100%',
+      background:
+        selectedModule === module.title
+          ? '#EAF2FE'
+          : 'transparent',
+      textAlign: 'left',
+      cursor: module.available
+        ? 'pointer'
+        : 'not-allowed',
+      font: 'inherit',
+      fontSize: '13px',
+    }}
+  >
+    <span className="sidebar-link-icon">
+      {module.icon}
+    </span>
+    {module.title}
+  </button>
+))}
+
         </div>
 
         <div className="sidebar-bottom">
@@ -144,6 +194,14 @@ export default function CampusDashboard({
         </header>
 
         <main className="dashboard-main">
+          
+           {selectedModule === 'Smart Parking' ? (
+          <ParkingPage
+             onBack={() => setSelectedModule(null)}
+                          />
+                ) : (
+                     <>
+
           <section className="dashboard-welcome">
             <div>
               <span className="dashboard-eyebrow">
@@ -273,7 +331,12 @@ export default function CampusDashboard({
           <footer className="dashboard-footer">
             Secure AIoT Smart Campus
           </footer>
+          
+  </>
+)}
+
         </main>
+        
       </div>
     </div>
   )
