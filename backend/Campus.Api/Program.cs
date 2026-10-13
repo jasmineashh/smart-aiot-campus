@@ -4,6 +4,9 @@ using Campus.Api.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
+using Campus.Api.Data.Seed;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ==========================================
@@ -56,6 +59,19 @@ builder.Services
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+
+// ==========================================
+// INITIAL UNIVERSITY ROLES
+// ==========================================
+
+using (var scope = app.Services.CreateScope())
+{
+    await IdentityRoleSeeder.SeedRolesAsync(
+        scope.ServiceProvider
+    );
+}
+
 
 // ==========================================
 // HTTP REQUEST PIPELINE
