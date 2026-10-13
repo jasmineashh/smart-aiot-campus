@@ -86,19 +86,31 @@ var app = builder.Build();
 // ==========================================
 
 
+
 using (var scope = app.Services.CreateScope())
 {
-    await IdentityRoleSeeder.SeedRolesAsync(
-        scope.ServiceProvider
-    );
+    var services = scope.ServiceProvider;
+
+    // Create university roles
+    await IdentityRoleSeeder.SeedRolesAsync(services);
 
     if (app.Environment.IsDevelopment())
     {
-        await DevelopmentUserSeeder.SeedAsync(
-            scope.ServiceProvider
-        );
+        // Optional demo student account
+        await DevelopmentUserSeeder.SeedAsync(services);
+
+        // Optional synthetic parking records
+        if (app.Configuration.GetValue<bool>(
+            "DevSeed:ParkingEnabled"))
+        {
+            var db = services
+                .GetRequiredService<CampusDbContext>();
+
+            await ParkingDataSeeder.SeedAsync(db);
+        }
     }
 }
+
 
 
 
