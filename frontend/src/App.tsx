@@ -1,32 +1,118 @@
 
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
+import {
+  login,
+  logout,
+  getCurrentUser,
+  type CampusUser,
+} from './services/authService'
+
 import './App.css'
 
 function App() {
   const [universityId, setUniversityId] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [message, setMessage] = useState('')
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [user, setUser] = useState<CampusUser | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [checkingSession, setCheckingSession] = useState(true)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    async function checkSession() {
+      try {
+        const currentUser = await getCurrentUser()
+
+        if (active) {
+          setUser(currentUser)
+        }
+      } catch {
+        if (active) {
+          setError(
+            'Unable to check your session. Verify that the backend is running.'
+          )
+        }
+      } finally {
+        if (active) {
+          setCheckingSession(false)
+        }
+      }
+    }
+
+    void checkSession()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>
+  ) {
     event.preventDefault()
 
-    // Authentication will be connected to ASP.NET Core Identity.
-    // Never use these fields for real credentials yet.
-    setMessage(
-      'The login interface is ready. Secure authentication will be connected next.'
-    )
+    setError('')
+    setMessage('')
+    setLoading(true)
+
+    try {
+      const loggedInUser = await login(
+        universityId.trim(),
+        password
+      )
+
+      setUser(loggedInUser)
+      setPassword('')
+      setMessage('Signed in successfully.')
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'An unexpected error occurred.'
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleLogout() {
+    setLoading(true)
+    setError('')
+    setMessage('')
+
+    try {
+      await logout()
+      setUser(null)
+      setUniversityId('')
+      setPassword('')
+      setMessage('You have been signed out.')
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to log out.'
+      )
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <main className="login-page">
       <section className="login-container">
+        {/* LEFT: CAMPUS BRANDING */}
+
         <div className="campus-panel">
           <div className="campus-overlay" />
 
           <div className="campus-content">
             <div className="campus-brand">
               <div className="brand-symbol">SC</div>
+
               <div>
                 <strong>SMART CAMPUS</strong>
                 <span>AIoT University Ecosystem</span>
@@ -34,12 +120,16 @@ function App() {
             </div>
 
             <div className="campus-intro">
-              <span className="eyebrow">THE FUTURE OF CAMPUS LIFE</span>
+              <span className="eyebrow">
+                THE FUTURE OF CAMPUS LIFE
+              </span>
+
               <h1>
                 One Campus.
                 <br />
                 Smarter Future.
               </h1>
+
               <p>
                 A secure, intelligent and connected campus.
                 Everything you need in one place.
@@ -58,83 +148,196 @@ function App() {
           </div>
         </div>
 
+        {/* RIGHT: LOGIN / AUTHENTICATED SESSION */}
+
         <div className="form-panel">
           <div className="form-top">
-            <span className="portal-label">UNIVERSITY PORTAL</span>
-            <span className="secure-label">Secure Access</span>
+            <span className="portal-label">
+              UNIVERSITY PORTAL
+            </span>
+
+            <span className="secure-label">
+              Secure Access
+            </span>
           </div>
 
           <div className="form-content">
             <div className="welcome-icon">SC</div>
 
-            <h2>Welcome back</h2>
-            <p className="form-subtitle">
-              Sign in to access your Smart Campus dashboard.
-            </p>
+            {checkingSession ? (
+              <>
+                <h2>Checking session</h2>
+                <p className="form-subtitle">
+                  Connecting to your university account...
+                </p>
+              </>
+            ) : user ? (
+              <>
+                <h2>
+                  Welcome, {user.fullName.split(' ')[0]}
+                </h2>
 
-            <form onSubmit={handleSubmit}>
-              <div className="input-group">
-                <label htmlFor="universityId">
-                  University ID or Email
-                </label>
+                <p className="form-subtitle">
+                  You are signed in to Smart Campus.
+                </p>
 
-                <input
-                  id="universityId"
-                  type="text"
-                  placeholder="Enter your university ID or email"
-                  value={universityId}
-                  onChange={(event) => setUniversityId(event.target.value)}
-                  autoComplete="username"
-                  required
-                />
-              </div>
+                <div className="user-profile-card">
+                  <div className="profile-header">
+                    <div className="profile-avatar">
+                      {user.fullName.charAt(0).toUpperCase()}
+                    </div>
 
-              <div className="input-group">
-                <label htmlFor="password">Password</label>
+                    <div>
+                      <strong>{user.fullName}</strong>
+                      <span>
+                        {user.roles.join(', ')}
+                      </span>
+                    </div>
+                  </div>
 
-                <div className="password-wrapper">
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    autoComplete="current-password"
-                    required
-                  />
+                  <div className="profile-detail">
+                    <span>University ID</span>
+                    <strong>{user.universityId}</strong>
+                  </div>
+
+                  <div className="profile-detail">
+                    <span>Email</span>
+                    <strong>
+                      {user.email ?? 'Not provided'}
+                    </strong>
+                  </div>
+
+                  <div className="profile-detail">
+                    <span>Department</span>
+                    <strong>
+                      {user.department ?? 'Not assigned'}
+                    </strong>
+                  </div>
+                </div>
+
+                <p className="demo-notice">
+                  Authentication is working. The campus
+                  dashboard will be developed next.
+                </p>
+
+                <button
+                  type="button"
+                  className="sign-in-btn"
+                  onClick={() => void handleLogout()}
+                  disabled={loading}
+                >
+                  {loading ? 'Signing out...' : 'Sign Out'}
+                </button>
+              </>
+            ) : (
+              <>
+                <h2>Welcome back</h2>
+
+                <p className="form-subtitle">
+                  Sign in to access your Smart Campus
+                  dashboard.
+                </p>
+
+                <form onSubmit={handleSubmit}>
+                  <div className="input-group">
+                    <label htmlFor="universityId">
+                      University ID or Email
+                    </label>
+
+                    <input
+                      id="universityId"
+                      type="text"
+                      placeholder="Enter your university ID or email"
+                      value={universityId}
+                      onChange={(event) =>
+                        setUniversityId(event.target.value)
+                      }
+                      autoComplete="username"
+                      required
+                      maxLength={256}
+                    />
+                  </div>
+
+                  <div className="input-group">
+                    <label htmlFor="password">
+                      Password
+                    </label>
+
+                    <div className="password-wrapper">
+                      <input
+                        id="password"
+                        type={
+                          showPassword
+                            ? 'text'
+                            : 'password'
+                        }
+                        placeholder="Enter your password"
+                        value={password}
+                        onChange={(event) =>
+                          setPassword(event.target.value)
+                        }
+                        autoComplete="current-password"
+                        required
+                      />
+
+                      <button
+                        type="button"
+                        className="password-toggle"
+                        onClick={() =>
+                          setShowPassword(!showPassword)
+                        }
+                        aria-label={
+                          showPassword
+                            ? 'Hide password'
+                            : 'Show password'
+                        }
+                      >
+                        {showPassword ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <p className="demo-notice">
+                    Development environment: use only
+                    your temporary test account.
+                  </p>
 
                   <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={
-                      showPassword ? 'Hide password' : 'Show password'
-                    }
+                    type="submit"
+                    className="sign-in-btn"
+                    disabled={loading}
                   >
-                    {showPassword ? 'Hide' : 'Show'}
+                    {loading
+                      ? 'Signing in...'
+                      : 'Sign In'}
+
+                    {!loading && (
+                      <span aria-hidden="true">→</span>
+                    )}
                   </button>
-                </div>
-              </div>
+                </form>
+              </>
+            )}
 
-              <p className="demo-notice">
-                Development preview: Do not enter real university
-                credentials yet.
+            {message && (
+              <p className="status-message" role="status">
+                {message}
               </p>
+            )}
 
-              <button type="submit" className="sign-in-btn">
-                Sign In
-                <span aria-hidden="true">→</span>
-              </button>
-
-              {message && (
-                <p className="status-message" role="status">
-                  {message}
-                </p>
-              )}
-            </form>
+            {error && (
+              <p
+                className="status-message auth-error"
+                role="alert"
+              >
+                {error}
+              </p>
+            )}
 
             <div className="form-divider">
-              <span>ONE PLATFORM, MULTIPLE SERVICES</span>
+              <span>
+                ONE PLATFORM, MULTIPLE SERVICES
+              </span>
             </div>
 
             <div className="services-preview">
@@ -156,7 +359,7 @@ function App() {
           </div>
 
           <div className="form-bottom">
-            © 2026 Secure AIoT Smart Campus
+             AIoT Smart Campus
           </div>
         </div>
       </section>

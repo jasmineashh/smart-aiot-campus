@@ -579,3 +579,87 @@
     transform: none;
   }
 }
+
+/* ==========================================
+   AUTHENTICATED USER PROFILE
+   ParkFlow-Inspired Components
+   ========================================== */
+
+.user-profile-card {
+  padding: 24px;
+  margin: 24px 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.profile-avatar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 15px;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.profile-header strong {
+  display: block;
+  color: var(--color-text);
+  font-size: 15px;
+}
+
+.profile-header span {
+  display: block;
+  margin-top: 5px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.profile-detail {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 11px 0;
+}
+
+.profile-detail span {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.profile-detail strong {
+  max-width: 100%;
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.auth-error {
+  background: #FFF1F2;
+  border-color: #FECDD3;
+  color: #B42318;
+}
+
+.sign-in-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
