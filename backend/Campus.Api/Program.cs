@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 using Campus.Api.Data.Seed;
 
+using Campus.Api.Endpoints;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +36,13 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+});
+
+
 // ==========================================
 // ASP.NET CORE IDENTITY
 // ==========================================
@@ -47,6 +57,16 @@ builder.Services
         options.Password.RequireNonAlphanumeric = true;
 
         options.User.RequireUniqueEmail = true;
+        
+        // Limit repeated failed login attempts
+        options.Lockout.DefaultLockoutTimeSpan =
+        TimeSpan.FromMinutes(15);
+
+        options.Lockout.MaxFailedAccessAttempts = 5;
+
+        options.Lockout.AllowedForNewUsers = true;
+
+        
     })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<CampusDbContext>()
@@ -96,6 +116,9 @@ app.UseHttpsRedirection();
 // Authenticate users before checking permissions
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapAuthEndpoints();
+
 
 // ==========================================
 // TEMPORARY TEST ENDPOINT
