@@ -78,9 +78,13 @@ export default function ParkingPage({
     (sum, zone) => sum + zone.outOfServiceSpaces, 0
   )
 
-  const occupancyRate = totalSpaces > 0
-    ? (occupied / totalSpaces) * 100
-    : 0
+  
+const measuredSpaces = available + occupied
+
+const occupancyRate = measuredSpaces > 0
+  ? (occupied / measuredSpaces) * 100
+  : null
+
 
   const hasData = activeZones.length > 0
 
@@ -243,7 +247,11 @@ export default function ParkingPage({
               </div>
 
               <div className="parking-occupancy-value">
-                {occupancyRate.toFixed(1)}%
+                
+{occupancyRate === null
+  ? 'Not measured'
+  : `${occupancyRate.toFixed(1)}%`}
+
               </div>
 
               <p className="parking-occupancy-caption">
@@ -254,7 +262,7 @@ export default function ParkingPage({
                 <div
                   className="parking-progress-fill"
                   style={{
-                    width: `${occupancyRate}%`,
+                    width: `${occupancyRate ?? 0}%`,
                   }}
                 />
               </div>
