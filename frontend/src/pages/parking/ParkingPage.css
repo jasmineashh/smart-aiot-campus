@@ -509,3 +509,173 @@
     gap: 12px;
   }
 }
+/* ==========================================
+   INTERACTIVE CAMPUS PARKING MAP
+   ========================================== */
+
+.parking-interactive-section {
+  margin-bottom: 24px;
+}
+
+.parking-analytics-only {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.parking-map-badge {
+  padding: 9px 14px;
+  border-radius: 100px;
+  background: #eaf2fe;
+  color: #0b5fd4;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.parking-map-interactive {
+  position: relative;
+  overflow: hidden;
+  background: #f2f5fa;
+  min-height: 260px;
+}
+
+.parking-map-layer {
+  position: relative;
+  width: 100%;
+  transform-origin: center center;
+  touch-action: none;
+  user-select: none;
+  will-change: transform;
+}
+
+.parking-map-layer img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+}
+
+.parking-map-controls {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px;
+  border-radius: 13px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.12);
+}
+
+.parking-map-controls button {
+  padding: 9px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #edf4ff;
+  color: #0b5fd4;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.parking-map-controls button:hover:not(:disabled) {
+  background: #d9e9ff;
+}
+
+.parking-map-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.parking-map-controls span {
+  min-width: 43px;
+  text-align: center;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.parking-map-button {
+  cursor: pointer;
+  z-index: 2;
+}
+
+.parking-map-button:hover {
+  background: #084ba9;
+}
+
+.parking-map-button.selected {
+  background: #306738;
+  outline: 3px solid #b5ccf2;
+}
+
+.parking-map-details {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 16px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  background: #edf4ff;
+  border: 1px solid #cfdff8;
+}
+
+.parking-map-details h3 {
+  margin: 0 0 8px;
+  color: #174d97;
+  font-size: 16px;
+}
+
+.parking-map-details p {
+  margin: 0 0 14px;
+  color: #536d94;
+  font-size: 12px;
+}
+
+.parking-map-detail-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.parking-map-detail-stats span {
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: white;
+  color: #334155;
+  font-size: 12px;
+}
+
+.parking-map-details > button {
+  align-self: flex-start;
+  border: none;
+  background: transparent;
+  color: #174d97;
+  font-size: 25px;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .parking-map-controls {
+    top: 8px;
+    right: 8px;
+    gap: 3px;
+    padding: 4px;
+  }
+
+  .parking-map-controls button {
+    padding: 7px 9px;
+  }
+
+  .parking-map-badge {
+    display: none;
+  }
+
+  .parking-map-details {
+    padding: 14px;
+  }
+}
+
