@@ -7,7 +7,9 @@ import {
 } from 'react'
 import {
   getParkingZones,
+  getParkingZoneDetails,
   type ParkingZone,
+  type ParkingSpace,
 } from '../../services/parkingService'
 
 import './ParkingPage.css'
@@ -238,6 +240,7 @@ function CampusParkingMap({ zones }: { zones: ParkingZone[] }) {
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [selectedId, setSelectedId] = useState<ParkingZone['id'] | null>(null)
   const [placingId, setPlacingId] = useState<string>('')
+  const [slotsZoneId, setSlotsZoneId] = useState<string | null>(null)
   // Preview coordinates remain only in memory; database records are not modified.
   const [draftPins, setDraftPins] = useState<Record<string, { x: number; y: number }>>({})
   const imageRef = useRef<HTMLImageElement>(null)
@@ -400,6 +403,13 @@ function CampusParkingMap({ zones }: { zones: ParkingZone[] }) {
               <span>Occupied: {selectedZone.occupiedSpaces}</span>
               <span>Unknown: {selectedZone.unknownSpaces}</span>
             </div>
+            <button
+              type="button"
+              className="parking-slots-open"
+              onClick={() => setSlotsZoneId(String(selectedZone.id))}
+            >
+              View Parking Spaces →
+            </button>
             {draftPins[String(selectedZone.id)] && (
               <p className="parking-map-preview-coordinates">
                 Preview position: X={draftPins[String(selectedZone.id)].x.toFixed(4)},
@@ -416,11 +426,122 @@ function CampusParkingMap({ zones }: { zones: ParkingZone[] }) {
           All newly placed markers are previews only.
         </p>
       )}
+      {slotsZoneId && (
+        <ParkingSlotsPanel
+          zoneId={slotsZoneId}
+          onClose={() => setSlotsZoneId(null)}
+        />
+      )}
       {Object.keys(draftPins).length > 0 && (
         <div className="parking-map-draft-actions">
           <span>{Object.keys(draftPins).length} preview marker(s) placed (not saved)</span>
           <button type="button" onClick={() => setDraftPins({})}>Clear Preview Markers</button>
         </div>
+      )}
+    </section>
+  )
+}
+
+// Individual spaces are displayed by their space numbers, not real-world coordinates.
+function ParkingSlotsPanel({ zoneId, onClose }: { zoneId: string; onClose: () => void }) {
+  const [spaces, setSpaces] = useState<ParkingSpace[]>([])
+  const [zoneName, setZoneName] = useState('Parking spaces')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [filter, setFilter] = useState('All')
+  const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null)
+  const [reload, setReload] = useState(0)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    setLoading(true)
+    setError('')
+    setSpaces([])
+    setSelectedSpace(null)
+    void getParkingZoneDetails(zoneId, controller.signal)
+      .then(data => {
+        if (controller.signal.aborted) return
+        setZoneName(data.name)
+        setSpaces(data.spaces)
+      })
+      .catch(err => {
+        if (!controller.signal.aborted) {
+          setError(err instanceof Error ? err.message : 'Unable to fetch parking spaces.')
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false)
+      })
+    return () => controller.abort()
+  }, [zoneId, reload])
+
+  // Supports either enum names or numeric enum values returned by ASP.NET.
+  function statusOf(value: ParkingSpace['status']): string {
+    const statuses = ['Available', 'Occupied', 'OutOfService', 'Unknown']
+    if (typeof value === 'number') return statuses[value] ?? 'Unknown'
+    const normalized = String(value).toLowerCase().replace(/[^a-z]/g, '')
+    return statuses.find(s => s.toLowerCase() === normalized) ?? 'Unknown'
+  }
+
+  const filtered = spaces.filter(space => filter === 'All' || statusOf(space.status) === filter)
+  const statuses = ['All', 'Available', 'Occupied', 'Unknown', 'OutOfService']
+
+  return (
+    <section className="parking-slots-panel" aria-label={`${zoneName} parking spaces`}>
+      <div className="parking-slots-header">
+        <div>
+          <h3>{zoneName} — Individual Spaces</h3>
+          <p>Database records ordered by space number. This is not a physical lot layout.</p>
+        </div>
+        <button type="button" onClick={onClose} aria-label="Close individual parking spaces">✕</button>
+      </div>
+      {loading ? <p role="status">Loading parking spaces...</p> : error ? (
+        <div className="parking-error" role="alert">
+          <span>{error}</span>
+          <button type="button" onClick={() => setReload(n => n + 1)}>Retry</button>
+        </div>
+      ) : (
+        <>
+          <div className="parking-slot-toolbar">
+            <span><strong>{spaces.length}</strong> spaces · <strong>{filtered.length}</strong> shown</span>
+            <label>
+              Status:
+              <select value={filter} onChange={event => { setFilter(event.target.value); setSelectedSpace(null) }}>
+                {statuses.map(status => <option key={status} value={status}>{status === 'OutOfService' ? 'Out of service' : status}</option>)}
+              </select>
+            </label>
+          </div>
+          {filtered.length === 0 ? <p>No spaces match this filter.</p> : (
+            <div className="parking-slot-grid">
+              {filtered.map(space => {
+                const status = statusOf(space.status)
+                return (
+                  <button
+                    type="button"
+                    key={space.id}
+                    onClick={() => setSelectedSpace(space)}
+                    className={`parking-slot parking-slot--${status.toLowerCase()} ${selectedSpace?.id === space.id ? 'parking-slot--selected' : ''}`}
+                    aria-pressed={selectedSpace?.id === space.id}
+                    title={`${space.spaceNumber}: ${status}`}
+                  >
+                    <span aria-hidden="true">▣</span>
+                    <strong>{space.spaceNumber}</strong>
+                    <small>{status === 'OutOfService' ? 'Out of service' : status}</small>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+          {selectedSpace && (
+            <div className="parking-slot-details">
+              <strong>{selectedSpace.spaceNumber}</strong>
+              <span>Status: {statusOf(selectedSpace.status)}</span>
+              <span>Type: {selectedSpace.type}</span>
+              <span>Last updated: {selectedSpace.lastUpdatedAt ? new Date(selectedSpace.lastUpdatedAt).toLocaleString() : 'Not recorded'}</span>
+              <button type="button" onClick={() => setSelectedSpace(null)}>Close details</button>
+            </div>
+          )}
+        </>
       )}
     </section>
   )
