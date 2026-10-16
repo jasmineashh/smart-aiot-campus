@@ -178,9 +178,10 @@ export default function ParkingPage({ onBack }: ParkingPageProps) {
             </div>
             <div className="parking-zone-grid">
               {activeZones.map(zone => {
-                const availability = zone.totalSpaces > 0
-                  ? (zone.availableSpaces / zone.totalSpaces) * 100
-                  : 0
+                const measured = zone.availableSpaces + zone.occupiedSpaces
+                const availability = measured > 0
+                  ? (zone.availableSpaces / measured) * 100
+                  : null
 
                 return (
                   <article className="parking-zone-card" key={zone.id}>
@@ -197,12 +198,12 @@ export default function ParkingPage({ onBack }: ParkingPageProps) {
                     <div className="parking-zone-track">
                       <div
                         className="parking-zone-fill"
-                        style={{ width: `${availability}%` }}
+                        style={{ width: `${availability ?? 0}%` }}
                       />
                     </div>
                     <div className="parking-zone-bottom">
                       <span>{zone.occupiedSpaces} occupied</span>
-                      <strong>{availability.toFixed(0)}% free</strong>
+                      <strong>{availability === null ? 'Not measured' : `${availability.toFixed(0)}% free`}</strong>
                     </div>
                   </article>
                 )
@@ -236,6 +237,10 @@ function CampusParkingMap({ zones }: { zones: ParkingZone[] }) {
   const [zoom, setZoom] = useState(1)
   const [position, setPosition] = useState({ x: 0, y: 0 })
   const [selectedId, setSelectedId] = useState<ParkingZone['id'] | null>(null)
+  const [placingId, setPlacingId] = useState<string>('')
+  // Preview coordinates remain only in memory; database records are not modified.
+  const [draftPins, setDraftPins] = useState<Record<string, { x: number; y: number }>>({})
+  const imageRef = useRef<HTMLImageElement>(null)
   const drag = useRef<{
     startX: number
     startY: number
@@ -243,15 +248,16 @@ function CampusParkingMap({ zones }: { zones: ParkingZone[] }) {
     y: number
   } | null>(null)
 
-  const mappedZones = zones.filter(
-    zone =>
-      zone.isActive &&
-      zone.mapX != null &&
-      zone.mapY != null &&
-      zone.mapX >= 0 && zone.mapX <= 1 &&
-      zone.mapY >= 0 && zone.mapY <= 1
-  )
-  const selectedZone = mappedZones.find(zone => zone.id === selectedId)
+  const activeZones = zones.filter(zone => zone.isActive)
+  const mappedZones = activeZones.flatMap(zone => {
+    const draft = draftPins[String(zone.id)]
+    const x = draft?.x ?? zone.mapX
+    const y = draft?.y ?? zone.mapY
+    return x != null && y != null && x >= 0 && x <= 1 && y >= 0 && y <= 1
+      ? [{ zone, x, y, draft: Boolean(draft) }]
+      : []
+  })
+  const selectedZone = activeZones.find(zone => zone.id === selectedId)
 
   function zoomIn() {
     setZoom(current => Math.min(3, current + 0.25))
@@ -269,11 +275,26 @@ function CampusParkingMap({ zones }: { zones: ParkingZone[] }) {
     setZoom(1)
     setPosition({ x: 0, y: 0 })
     setSelectedId(null)
+    setPlacingId('')
   }
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
-    if (event.button !== 0 || zoom === 1) return
+    if (event.button !== 0) return
 
+    if (placingId) {
+      const bounds = imageRef.current?.getBoundingClientRect()
+      if (!bounds || bounds.width === 0 || bounds.height === 0) return
+      const x = (event.clientX - bounds.left) / bounds.width
+      const y = (event.clientY - bounds.top) / bounds.height
+      if (x < 0 || x > 1 || y < 0 || y > 1) return
+      setDraftPins(current => ({ ...current, [placingId]: { x, y } }))
+      const selected = activeZones.find(zone => String(zone.id) === placingId)
+      setSelectedId(selected?.id ?? null)
+      setPlacingId('')
+      return
+    }
+
+    if (zoom === 1) return
     drag.current = {
       startX: event.clientX,
       startY: event.clientY,
@@ -303,9 +324,26 @@ function CampusParkingMap({ zones }: { zones: ParkingZone[] }) {
       <div className="parking-section-header">
         <div>
           <h2>Interactive Campus Parking Map</h2>
-          <p>Explore the campus and select parking zones</p>
+          <p>Explore the campus and preview parking-zone markers</p>
         </div>
         <span className="parking-map-badge">Campus Explorer</span>
+      </div>
+
+      <div className="parking-map-placement">
+        <label htmlFor="parking-placement-zone">Place a marker</label>
+        <select
+          id="parking-placement-zone"
+          value={placingId}
+          onChange={event => setPlacingId(event.target.value)}
+        >
+          <option value="">Select a parking zone...</option>
+          {activeZones.map(zone => (
+            <option key={zone.id} value={String(zone.id)}>
+              {zone.name}
+            </option>
+          ))}
+        </select>
+        <span>{placingId ? 'Click the correct location on the campus image' : 'Preview only · Nothing saved to database'}</span>
       </div>
 
       <div className="parking-map parking-map-interactive">
@@ -313,7 +351,7 @@ function CampusParkingMap({ zones }: { zones: ParkingZone[] }) {
           className="parking-map-layer"
           style={{
             transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
-            cursor: zoom > 1 ? 'grab' : 'default',
+            cursor: placingId ? 'crosshair' : zoom > 1 ? 'grab' : 'default',
           }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -321,23 +359,21 @@ function CampusParkingMap({ zones }: { zones: ParkingZone[] }) {
           onPointerCancel={handlePointerUp}
         >
           <img
+            ref={imageRef}
             src="/campus-map.png"
             alt="Illustrated AASTMT campus reference map"
             draggable={false}
           />
-          {mappedZones.map(zone => (
+          {mappedZones.map(({ zone, x, y, draft }) => (
             <button
               key={zone.id}
               type="button"
               className={`parking-map-pin parking-map-button ${
                 selectedId === zone.id ? 'selected' : ''
-              }`}
-              style={{
-                left: `${zone.mapX! * 100}%`,
-                top: `${zone.mapY! * 100}%`,
-              }}
-              aria-label={`View ${zone.name}`}
-              title={zone.name}
+              } ${draft ? 'parking-map-pin-draft' : ''}`}
+              style={{ left: `${x * 100}%`, top: `${y * 100}%` }}
+              aria-label={`View ${zone.name}${draft ? ' (preview)' : ''}`}
+              title={`${zone.name}${draft ? ' — preview marker' : ''}`}
               onPointerDown={event => event.stopPropagation()}
               onClick={() => setSelectedId(zone.id)}
             >
@@ -349,7 +385,7 @@ function CampusParkingMap({ zones }: { zones: ParkingZone[] }) {
           <button type="button" onClick={zoomIn} disabled={zoom >= 3} aria-label="Zoom in">+</button>
           <span>{Math.round(zoom * 100)}%</span>
           <button type="button" onClick={zoomOut} disabled={zoom <= 1} aria-label="Zoom out">−</button>
-          <button type="button" onClick={resetMap}>Reset</button>
+          <button type="button" onClick={resetMap}>Reset View</button>
         </div>
       </div>
 
@@ -364,22 +400,27 @@ function CampusParkingMap({ zones }: { zones: ParkingZone[] }) {
               <span>Occupied: {selectedZone.occupiedSpaces}</span>
               <span>Unknown: {selectedZone.unknownSpaces}</span>
             </div>
+            {draftPins[String(selectedZone.id)] && (
+              <p className="parking-map-preview-coordinates">
+                Preview position: X={draftPins[String(selectedZone.id)].x.toFixed(4)},
+                Y={draftPins[String(selectedZone.id)].y.toFixed(4)} — not saved
+              </p>
+            )}
           </div>
-          <button
-            type="button"
-            onClick={() => setSelectedId(null)}
-            aria-label="Close parking details"
-          >
-            ×
-          </button>
+          <button type="button" onClick={() => setSelectedId(null)} aria-label="Close parking details">×</button>
         </div>
       ) : (
         <p className="parking-map-note">
-          Use + and − to zoom. Drag the image while zoomed in.
-          {mappedZones.length === 0
-            ? ' Verified parking coordinates have not been added yet.'
-            : ' Click a parking marker to view its details.'}
+          Select a parking zone above, then click its location on the image.
+          Drag when zoomed in, or use + and − to zoom.
+          All newly placed markers are previews only.
         </p>
+      )}
+      {Object.keys(draftPins).length > 0 && (
+        <div className="parking-map-draft-actions">
+          <span>{Object.keys(draftPins).length} preview marker(s) placed (not saved)</span>
+          <button type="button" onClick={() => setDraftPins({})}>Clear Preview Markers</button>
+        </div>
       )}
     </section>
   )

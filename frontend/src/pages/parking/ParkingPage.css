@@ -678,4 +678,65 @@
     padding: 14px;
   }
 }
+/* Append these styles to the end of the existing ParkingPage.css */
+.parking-map-placement {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background: #edf4ff;
+  border: 1px solid #cfdff8;
+  border-radius: 12px;
+}
+.parking-map-placement label {
+  color: #174d97;
+  font-size: 13px;
+  font-weight: 700;
+}
+.parking-map-placement select {
+  min-width: 200px;
+  max-width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #b5ccf2;
+  background: white;
+  color: #212121;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 13px;
+}
+.parking-map-placement span {
+  font-size: 12px;
+  color: #536d94;
+}
+.parking-map-pin-draft {
+  background: #f57c00;
+  outline: 2px solid #fff1df;
+}
+.parking-map-preview-coordinates {
+  margin-top: 13px !important;
+  font-size: 12px !important;
+  font-weight: 600;
+  color: #94500f !important;
+}
+.parking-map-draft-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-top: 12px;
+  color: #687383;
+  font-size: 12px;
+}
+.parking-map-draft-actions button {
+  border: 1px solid #cfdff8;
+  padding: 8px 12px;
+  color: #0b5fd4;
+  background: white;
+  border-radius: 9px;
+  font-weight: 650;
+  cursor: pointer;
+}
 
