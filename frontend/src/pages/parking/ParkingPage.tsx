@@ -449,6 +449,7 @@ function ParkingSlotsPanel({ zoneId, onClose }: { zoneId: string; onClose: () =>
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [filter, setFilter] = useState('All')
+  const [search, setSearch] = useState('')
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null)
   const [reload, setReload] = useState(0)
 
@@ -483,7 +484,11 @@ function ParkingSlotsPanel({ zoneId, onClose }: { zoneId: string; onClose: () =>
     return statuses.find(s => s.toLowerCase() === normalized) ?? 'Unknown'
   }
 
-  const filtered = spaces.filter(space => filter === 'All' || statusOf(space.status) === filter)
+  const filtered = spaces.filter(space => {
+    const matchesStatus = filter === 'All' || statusOf(space.status) === filter
+    const matchesSearch = space.spaceNumber.toLowerCase().includes(search.trim().toLowerCase())
+    return matchesStatus && matchesSearch
+  })
   const statuses = ['All', 'Available', 'Occupied', 'Unknown', 'OutOfService']
 
   return (
@@ -503,15 +508,61 @@ function ParkingSlotsPanel({ zoneId, onClose }: { zoneId: string; onClose: () =>
       ) : (
         <>
           <div className="parking-slot-toolbar">
-            <span><strong>{spaces.length}</strong> spaces · <strong>{filtered.length}</strong> shown</span>
-            <label>
-              Status:
-              <select value={filter} onChange={event => { setFilter(event.target.value); setSelectedSpace(null) }}>
-                {statuses.map(status => <option key={status} value={status}>{status === 'OutOfService' ? 'Out of service' : status}</option>)}
-              </select>
-            </label>
+            <span className="parking-slot-results">
+              <strong>{spaces.length}</strong> spaces · <strong>{filtered.length}</strong> shown
+            </span>
+            <div className="parking-slot-filters">
+              <div className="parking-slot-search-group">
+                <label htmlFor="parking-slot-search">Search slot:</label>
+                <input
+                  id="parking-slot-search"
+                  type="search"
+                  autoComplete="off"
+                  placeholder="e.g. P1-025"
+                  value={search}
+                  onChange={event => {
+                    setSearch(event.target.value)
+                    setSelectedSpace(null)
+                  }}
+                />
+                {search && (
+                  <button
+                    type="button"
+                    className="parking-slot-clear"
+                    onClick={() => {
+                      setSearch('')
+                      setSelectedSpace(null)
+                    }}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              <div className="parking-slot-status-group">
+                <label htmlFor="parking-slot-status">Status:</label>
+                <select
+                  id="parking-slot-status"
+                  value={filter}
+                  onChange={event => {
+                    setFilter(event.target.value)
+                    setSelectedSpace(null)
+                  }}
+                >
+                  {statuses.map(status => (
+                    <option key={status} value={status}>
+                      {status === 'OutOfService' ? 'Out of service' : status}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
-          {filtered.length === 0 ? <p>No spaces match this filter.</p> : (
+          {filtered.length === 0 ? (
+            <div className="parking-slot-empty">
+              <p>No parking spaces match your search and status filter.</p>
+              <button type="button" onClick={() => { setSearch(''); setFilter('All'); setSelectedSpace(null) }}>Clear filters</button>
+            </div>
+          ) : (
             <div className="parking-slot-grid">
               {filtered.map(space => {
                 const status = statusOf(space.status)

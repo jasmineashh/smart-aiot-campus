@@ -764,4 +764,126 @@
 .parking-slot-details { display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:15px; margin-top:18px; background:#edf4ff; border-radius:12px; font-size:12px; }
 .parking-slot-details button { margin-left:auto; padding:8px 12px; border:0; border-radius:8px; background:white; color:#0b5fd4; cursor:pointer; }
 @media(max-width:600px) { .parking-slots-panel { padding:14px; } .parking-slot-grid { grid-template-columns:repeat(auto-fill,minmax(95px,1fr)); } }
+/* Slot number search and combined filtering */
+.parking-slot-filters { display:flex; align-items:center; justify-content:flex-end; flex-wrap:wrap; gap:8px; }
+.parking-slot-filters label { font-size:12px; color:#53657b; font-weight:600; }
+.parking-slot-filters input, .parking-slot-filters select { min-height:38px; border:1px solid #cfdff8; border-radius:9px; background:#fff; color:#212121; padding:8px 11px; font:inherit; font-size:13px; }
+.parking-slot-filters input { width:min(220px,100%); }
+.parking-slot-filters input:focus-visible, .parking-slot-filters select:focus-visible { outline:2px solid #0b5fd4; outline-offset:2px; }
+.parking-slot-clear, .parking-slot-empty button { border:0; border-radius:9px; background:#eaf2fe; color:#0b5fd4; padding:9px 12px; font-size:12px; font-weight:700; cursor:pointer; }
+.parking-slot-empty { padding:24px; text-align:center; background:#f8fafc; border-radius:12px; color:#64748b; }
+@media (max-width:700px) { .parking-slot-filters { justify-content:flex-start; width:100%; } .parking-slot-filters input { flex:1 1 160px; } }
+
+/* Parking slot search and filter alignment */
+
+.parking-slot-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.parking-slot-toolbar label {
+  white-space: nowrap;
+}
+
+.parking-slot-toolbar input,
+.parking-slot-toolbar select {
+  min-height: 38px;
+}
+
+@media (max-width: 700px) {
+  .parking-slot-toolbar {
+    justify-content: flex-start;
+  }
+}
+/* Parking slot toolbar — append at END of ParkingPage.css.
+   These rules override the earlier search/filter layout rules. */
+.parking-slot-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.parking-slot-results {
+  font-size: 13px;
+  color: #334155;
+}
+
+.parking-slot-filters {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+.parking-slot-search-group,
+.parking-slot-status-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.parking-slot-search-group {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+}
+
+.parking-slot-status-group {
+  flex: 0 0 auto;
+}
+
+.parking-slot-search-group label,
+.parking-slot-status-group label {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: #53657b;
+}
+
+.parking-slot-search-group input {
+  flex: 0 1 230px;
+  width: min(230px, 100%);
+  min-width: 85px;
+  box-sizing: border-box;
+  height: 38px;
+}
+
+.parking-slot-status-group select {
+  flex: 0 0 128px;
+  width: 128px;
+  box-sizing: border-box;
+  height: 38px;
+}
+
+.parking-slot-clear {
+  flex-shrink: 0;
+  height: 38px;
+}
+
+@media (max-width: 650px) {
+  .parking-slot-filters {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 10px;
+  }
+
+  .parking-slot-search-group {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+
+  .parking-slot-search-group input {
+    flex: 1 1 auto;
+    max-width: 100%;
+  }
+}
 
