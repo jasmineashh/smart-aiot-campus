@@ -3,6 +3,7 @@ using Campus.Api.Dtos;
 using Campus.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+  using Campus.Api.Security;
 
 namespace Campus.Api.Controllers;
 
@@ -23,6 +24,8 @@ public class AttendanceController : ControllerBase
         _db = db;
     }
 
+  [RequireDeviceKey]
+  
     // POST api/attendance/recognize   (called by the AI camera service)
     [HttpPost("recognize")]
     public async Task<ActionResult<RecognitionResponseDto>> Recognize(RecognitionRequestDto dto)

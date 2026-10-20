@@ -3,6 +3,7 @@ using Campus.Api.Dtos;
 using Campus.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Campus.Api.Security;
 
 namespace Campus.Api.Controllers;
 
@@ -19,6 +20,7 @@ public class FacesController : ControllerBase
         _db = db;
     }
 
+  [RequireDeviceKey]
     // POST api/persons/1/faces   (enroll one face for a person)
     [HttpPost("api/persons/{personId:int}/faces")]
     public async Task<ActionResult<FaceEmbeddingDto>> Enroll(int personId, EnrollFaceDto dto)
@@ -49,6 +51,7 @@ public class FacesController : ControllerBase
         return Ok(ToDto(face));
     }
 
+  [RequireDeviceKey]
     // GET api/persons/1/faces   (list a person's enrolled faces)
     [HttpGet("api/persons/{personId:int}/faces")]
     public async Task<ActionResult<List<FaceEmbeddingDto>>> GetForPerson(int personId)
