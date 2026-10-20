@@ -1,8 +1,15 @@
+using Campus.Api.Data;                      // NEW
+using Microsoft.EntityFrameworkCore;         // NEW
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// NEW: connect to PostgreSQL
+builder.Services.AddDbContext<CampusDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 
