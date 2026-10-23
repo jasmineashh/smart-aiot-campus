@@ -1,20 +1,21 @@
 
+using System.Text.Json.Serialization;
 using Campus.Api.Data;
+using Campus.Api.Data.Seed;
+using Campus.Api.Endpoints;
 using Campus.Api.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-
-using Campus.Api.Data.Seed;
-
-using Campus.Api.Endpoints;
-
-
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ==========================================
 // DATABASE CONFIGURATION
 // ==========================================
+
+// Use the existing Smart Campus connection-string name.
+// Both parking and biometrics share this database.
 
 var connectionString = builder.Configuration
     .GetConnectionString("CampusDatabase")
@@ -36,12 +37,10 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-
 builder.Services.AddAntiforgery(options =>
 {
     options.HeaderName = "X-CSRF-TOKEN";
 });
-
 
 // ==========================================
 // ASP.NET CORE IDENTITY
@@ -57,16 +56,12 @@ builder.Services
         options.Password.RequireNonAlphanumeric = true;
 
         options.User.RequireUniqueEmail = true;
-        
-        // Limit repeated failed login attempts
+
         options.Lockout.DefaultLockoutTimeSpan =
-        TimeSpan.FromMinutes(15);
+            TimeSpan.FromMinutes(15);
 
         options.Lockout.MaxFailedAccessAttempts = 5;
-
         options.Lockout.AllowedForNewUsers = true;
-
-        
     })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<CampusDbContext>()
@@ -76,22 +71,30 @@ builder.Services
 // API SERVICES
 // ==========================================
 
+// Biometrics uses MVC controllers.
+// Return enum values as readable strings.
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter()
+        );
+    });
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-
 // ==========================================
-// INITIAL UNIVERSITY ROLES
+// DEVELOPMENT SEEDING
 // ==========================================
-
-
 
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
-    // Create university roles
+    // Existing university roles
     await IdentityRoleSeeder.SeedRolesAsync(services);
 
     if (app.Environment.IsDevelopment())
@@ -99,7 +102,7 @@ using (var scope = app.Services.CreateScope())
         // Optional demo student account
         await DevelopmentUserSeeder.SeedAsync(services);
 
-        // Optional synthetic parking records
+        // Optional parking demo data
         if (app.Configuration.GetValue<bool>(
             "DevSeed:ParkingEnabled"))
         {
@@ -111,37 +114,43 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-
-
-
 // ==========================================
-// HTTP REQUEST PIPELINE
+// OPENAPI & SCALAR
 // ==========================================
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
+// ==========================================
+// HTTP REQUEST PIPELINE
+// ==========================================
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
-
-// Authenticate users before checking permissions
 app.UseAuthentication();
 app.UseAuthorization();
 
+// ==========================================
+// API ENDPOINTS
+// ==========================================
+
+// Existing Smart Campus authentication
 app.MapAuthEndpoints();
 
+// Existing Smart Parking APIs
 app.MapParkingEndpoints();
 
-
+// New biometric API controllers
+app.MapControllers();
 
 // ==========================================
-// TEMPORARY TEST ENDPOINT
+// TEMPORARY WEATHER TEST ENDPOINT
 // ==========================================
 
 var summaries = new[]
