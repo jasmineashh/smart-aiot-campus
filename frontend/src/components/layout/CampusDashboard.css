@@ -524,3 +524,42 @@
     align-items: flex-start;
   }
 }
+
+.dashboard-sidebar button.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #475569;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.dashboard-sidebar button.sidebar-link:hover:not(:disabled) {
+  background: #f1f6ff;
+  color: #0b5fd4;
+}
+
+.dashboard-sidebar button.sidebar-link.active {
+  background: #eaf2fe;
+  color: #0b5fd4;
+  font-weight: 650;
+}
+
+.dashboard-sidebar button.sidebar-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dashboard-sidebar button.sidebar-link:focus-visible {
+  outline: 2px solid #0b5fd4;
+  outline-offset: 2px;
+}
+

@@ -1,10 +1,8 @@
 
 import { useState } from 'react'
 import type { CampusUser } from '../../services/authService'
-import './CampusDashboard.css'
-
 import ParkingPage from '../../pages/parking/ParkingPage'
-
+import './CampusDashboard.css'
 
 interface DashboardProps {
   user: CampusUser
@@ -12,12 +10,17 @@ interface DashboardProps {
   loggingOut: boolean
 }
 
-type Module = {
+type Page =
+  | 'overview'
+  | 'parking'
+  | 'parking-admin'
+
+type CampusModule = {
   title: string
   description: string
   icon: string
-  status: string
   available: boolean
+  page?: Page
 }
 
 export default function CampusDashboard({
@@ -25,8 +28,7 @@ export default function CampusDashboard({
   onLogout,
   loggingOut,
 }: DashboardProps) {
-  const [selectedModule, setSelectedModule] =
-    useState<string | null>(null)
+  const [page, setPage] = useState<Page>('overview')
 
   const isAdmin = user.roles.includes('Admin')
   const isProfessor = user.roles.includes('Professor')
@@ -40,34 +42,44 @@ export default function CampusDashboard({
         ? 'Staff Member'
         : 'Student'
 
-  const modules: Module[] = [
+  const welcomeName =
+    user.fullName.trim().split(' ')[0] || 'User'
+
+  const modules: CampusModule[] = [
     {
       title: 'Smart Parking',
       description:
-        'Campus parking availability, registered vehicles and AI predictions.',
+        'Explore the campus parking map, parking zones and individual spaces.',
       icon: 'P',
-      status: 'In development',
       available: true,
+      page: 'parking',
     },
     {
       title: 'Attendance & Access',
       description:
-        'University attendance records and secure campus access.',
+        'Biometric attendance and secure university access.',
       icon: 'A',
-      status: 'Coming soon',
       available: false,
     },
     {
       title: 'Smart Irrigation',
       description:
-        'Environmental monitoring and university green-field management.',
+        'Environmental monitoring and automated irrigation.',
       icon: 'I',
-      status: 'Coming soon',
       available: false,
     },
   ]
 
-  const welcomeName = user.fullName.split(' ')[0]
+  const pageTitle =
+    page === 'parking'
+      ? 'Smart Parking'
+      : page === 'parking-admin'
+        ? 'Parking Management'
+        : 'Overview'
+
+  const navigate = (nextPage: Page) => {
+    setPage(nextPage)
+  }
 
   return (
     <div className="campus-dashboard">
@@ -86,73 +98,86 @@ export default function CampusDashboard({
             MAIN MENU
           </span>
 
-          
-<button
-  type="button"
-  className={
-    selectedModule === null
-      ? 'sidebar-link active'
-      : 'sidebar-link'
-  }
-  onClick={() => setSelectedModule(null)}
-  style={{
-    border: 'none',
-    width: '100%',
-    background:
-      selectedModule === null
-        ? '#EAF2FE'
-        : 'transparent',
-    textAlign: 'left',
-    cursor: 'pointer',
-    font: 'inherit',
-    fontSize: '13px',
-  }}
->
-  <span className="sidebar-link-icon">⌂</span>
-  Overview
-</button>
-
+          <button
+            type="button"
+            className={
+              page === 'overview'
+                ? 'sidebar-link active'
+                : 'sidebar-link'
+            }
+            aria-current={
+              page === 'overview' ? 'page' : undefined
+            }
+            onClick={() => navigate('overview')}
+          >
+            <span className="sidebar-link-icon">
+              ⌂
+            </span>
+            Overview
+          </button>
 
           <span className="sidebar-section-label">
             CAMPUS SYSTEMS
           </span>
 
-          
-          
-           {modules.map((module) => (
-             <button
-    type="button"
-    className={
-      selectedModule === module.title
-        ? 'sidebar-link active'
-        : 'sidebar-link'
- 
-    }
-    key={module.title}
-    disabled={!module.available}
-    onClick={() => setSelectedModule(module.title)}
-    style={{
-      border: 'none',
-      width: '100%',
-      background:
-        selectedModule === module.title
-          ? '#EAF2FE'
-          : 'transparent',
-      textAlign: 'left',
-      cursor: module.available
-        ? 'pointer'
-        : 'not-allowed',
-      font: 'inherit',
-      fontSize: '13px',
-    }}
-  >
-    <span className="sidebar-link-icon">
-      {module.icon}
-    </span>
-    {module.title}
-  </button>
-))}
+          {modules.map((module) => (
+            <button
+              key={module.title}
+              type="button"
+              className={
+                module.page === page
+                  ? 'sidebar-link active'
+                  : 'sidebar-link'
+              }
+              aria-current={
+                module.page === page
+                  ? 'page'
+                  : undefined
+              }
+              disabled={!module.available}
+              onClick={() => {
+                if (module.page) {
+                  navigate(module.page)
+                }
+              }}
+            >
+              <span className="sidebar-link-icon">
+                {module.icon}
+              </span>
 
+              {module.title}
+            </button>
+          ))}
+
+          {isAdmin && (
+            <>
+              <span className="sidebar-section-label">
+                ADMINISTRATION
+              </span>
+
+              <button
+                type="button"
+                className={
+                  page === 'parking-admin'
+                    ? 'sidebar-link active'
+                    : 'sidebar-link'
+                }
+                aria-current={
+                  page === 'parking-admin'
+                    ? 'page'
+                    : undefined
+                }
+                onClick={() =>
+                  navigate('parking-admin')
+                }
+              >
+                <span className="sidebar-link-icon">
+                  M
+                </span>
+                Parking Management
+              </button>
+            </>
+          )}
         </div>
 
         <div className="sidebar-bottom">
@@ -173,7 +198,9 @@ export default function CampusDashboard({
             disabled={loggingOut}
             onClick={() => void onLogout()}
           >
-            {loggingOut ? 'Signing out...' : 'Sign Out'}
+            {loggingOut
+              ? 'Signing out...'
+              : 'Sign Out'}
           </button>
         </div>
       </aside>
@@ -182,11 +209,12 @@ export default function CampusDashboard({
         <header className="dashboard-topbar">
           <div className="dashboard-breadcrumb">
             Smart Campus <span>/</span>
-            <strong>Overview</strong>
+            <strong>{pageTitle}</strong>
           </div>
 
           <div className="dashboard-top-user">
             <span>{role}</span>
+
             <div className="top-avatar">
               {user.fullName.charAt(0).toUpperCase()}
             </div>
@@ -194,149 +222,220 @@ export default function CampusDashboard({
         </header>
 
         <main className="dashboard-main">
-          
-           {selectedModule === 'Smart Parking' ? (
-          <ParkingPage
-             onBack={() => setSelectedModule(null)}
-                          />
-                ) : (
-                     <>
-
-          <section className="dashboard-welcome">
-            <div>
-              <span className="dashboard-eyebrow">
-                SMART CAMPUS PORTAL
-              </span>
-
-              <h1>Welcome back, {welcomeName}!</h1>
-
-              <p>
-                Your connected university experience
-                starts here.
-              </p>
-            </div>
-
-            <div className="welcome-badge">
-              {role}
-            </div>
-          </section>
-
-          <div className="dashboard-heading">
-            <div>
-              <h2>Campus Services</h2>
-              <p>
-                Explore your connected university systems.
-              </p>
-            </div>
-          </div>
-
-          <section className="campus-module-grid">
-            {modules.map((module) => (
-              <article
-                className="campus-module-card"
-                key={module.title}
-              >
-                <div className="module-card-top">
-                  <div className="module-icon">
-                    {module.icon}
-                  </div>
-
-                  <span
-                    className={
-                      module.available
-                        ? 'module-status developing'
-                        : 'module-status'
-                    }
-                  >
-                    {module.status}
-                  </span>
-                </div>
-
-                <h3>{module.title}</h3>
-                <p>{module.description}</p>
-
-                {module.available ? (
-                  <button
-                    className="module-open"
-                    type="button"
-                    onClick={() =>
-                      setSelectedModule(module.title)
-                    }
-                  >
-                    View development status
-                    <span aria-hidden="true">→</span>
-                  </button>
-                ) : (
-                  <span className="module-unavailable">
-                    Module not yet available
-                  </span>
-                )}
-              </article>
-            ))}
-          </section>
-
-          {selectedModule && (
-            <section
-              className="dashboard-info-panel"
-              aria-live="polite"
-            >
-              <div>
-                <h3>{selectedModule}</h3>
-                <p>
-                  The Smart Parking page is our next
-                  development milestone. It will use
-                  the real campus map and database-backed
-                  parking information.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedModule(null)}
-              >
-                Close
-              </button>
-            </section>
+          {page === 'parking' && (
+            <ParkingPage
+              onBack={() => navigate('overview')}
+            />
           )}
 
-          <div className="dashboard-heading">
-            <div>
-              <h2>My University Profile</h2>
-              <p>
-                Your information from the shared campus
-                database.
-              </p>
-            </div>
-          </div>
+          {page === 'parking-admin' && isAdmin && (
+            <>
+              <section className="dashboard-welcome">
+                <div>
+                  <span className="dashboard-eyebrow">
+                    ADMINISTRATION
+                  </span>
 
-          <section className="dashboard-profile-grid">
-            <div className="profile-data-card">
-              <span>University ID</span>
-              <strong>{user.universityId}</strong>
-            </div>
+                  <h1>Parking Management</h1>
 
-            <div className="profile-data-card">
-              <span>Department</span>
-              <strong>
-                {user.department ?? 'Not assigned'}
-              </strong>
-            </div>
+                  <p>
+                    Manage registered vehicles,
+                    parking permissions and campus
+                    parking operations.
+                  </p>
+                </div>
 
-            <div className="profile-data-card">
-              <span>Account Type</span>
-              <strong>{role}</strong>
-            </div>
-          </section>
+                <div className="welcome-badge">
+                  Administrator
+                </div>
+              </section>
 
-          <footer className="dashboard-footer">
-            Secure AIoT Smart Campus
-          </footer>
-          
-  </>
-)}
+              <section className="dashboard-info-panel">
+                <div>
+                  <h3>Admin dashboard preparation</h3>
 
+                  <p>
+                    Vehicle approvals, occupancy
+                    analytics and parking permissions
+                    will appear here once the secured
+                    administrator API endpoints
+                    are implemented.
+                  </p>
+                </div>
+              </section>
+
+              <div className="dashboard-heading">
+                <div>
+                  <h2>Available Management Areas</h2>
+                  <p>
+                    These features will use actual
+                    database records.
+                  </p>
+                </div>
+              </div>
+
+              <section className="campus-module-grid">
+                <article className="campus-module-card">
+                  <div className="module-icon">V</div>
+                  <h3>Vehicle Approvals</h3>
+                  <p>
+                    Review registered vehicles and
+                    approve or reject requests.
+                  </p>
+                  <span className="module-unavailable">
+                    API integration pending
+                  </span>
+                </article>
+
+                <article className="campus-module-card">
+                  <div className="module-icon">C</div>
+                  <h3>Parking Analytics</h3>
+                  <p>
+                    Monitor zone occupancy, utilization
+                    and historical trends.
+                  </p>
+                  <span className="module-unavailable">
+                    Analytics integration pending
+                  </span>
+                </article>
+
+                <article className="campus-module-card">
+                  <div className="module-icon">R</div>
+                  <h3>Parking Permissions</h3>
+                  <p>
+                    Configure eligibility for students,
+                    professors, staff and residents.
+                  </p>
+                  <span className="module-unavailable">
+                    Access rules pending
+                  </span>
+                </article>
+              </section>
+            </>
+          )}
+
+          {page === 'overview' && (
+            <>
+              <section className="dashboard-welcome">
+                <div>
+                  <span className="dashboard-eyebrow">
+                    SMART CAMPUS PORTAL
+                  </span>
+
+                  <h1>
+                    Welcome back, {welcomeName}!
+                  </h1>
+
+                  <p>
+                    Your connected university
+                    experience starts here.
+                  </p>
+                </div>
+
+                <div className="welcome-badge">
+                  {role}
+                </div>
+              </section>
+
+              <div className="dashboard-heading">
+                <div>
+                  <h2>Campus Services</h2>
+                  <p>
+                    Explore your connected
+                    university systems.
+                  </p>
+                </div>
+              </div>
+
+              <section className="campus-module-grid">
+                {modules.map((module) => (
+                  <article
+                    className="campus-module-card"
+                    key={module.title}
+                  >
+                    <div className="module-card-top">
+                      <div className="module-icon">
+                        {module.icon}
+                      </div>
+
+                      <span
+                        className={
+                          module.available
+                            ? 'module-status developing'
+                            : 'module-status'
+                        }
+                      >
+                        {module.available
+                          ? 'In development'
+                          : 'Coming soon'}
+                      </span>
+                    </div>
+
+                    <h3>{module.title}</h3>
+                    <p>{module.description}</p>
+
+                    {module.available && module.page ? (
+                      <button
+                        type="button"
+                        className="module-open"
+                        onClick={() =>
+                          navigate(module.page!)
+                        }
+                      >
+                        Explore Smart Parking
+                        <span aria-hidden="true">
+                          →
+                        </span>
+                      </button>
+                    ) : (
+                      <span className="module-unavailable">
+                        Module not yet available
+                      </span>
+                    )}
+                  </article>
+                ))}
+              </section>
+
+              <div className="dashboard-heading">
+                <div>
+                  <h2>My University Profile</h2>
+                  <p>
+                    Your account information
+                    from the campus system.
+                  </p>
+                </div>
+              </div>
+
+              <section className="dashboard-profile-grid">
+                <div className="profile-data-card">
+                  <span>Full Name</span>
+                  <strong>{user.fullName}</strong>
+                </div>
+
+                <div className="profile-data-card">
+                  <span>University ID</span>
+                  <strong>{user.universityId}</strong>
+                </div>
+
+                <div className="profile-data-card">
+                  <span>Department</span>
+                  <strong>
+                    {user.department ?? 'Not assigned'}
+                  </strong>
+                </div>
+
+                <div className="profile-data-card">
+                  <span>Account Type</span>
+                  <strong>{role}</strong>
+                </div>
+              </section>
+
+              <footer className="dashboard-footer">
+                Secure AIoT Smart Campus
+              </footer>
+            </>
+          )}
         </main>
-        
       </div>
     </div>
   )

@@ -1,0 +1,218 @@
+/* New student parking flow. Intentionally isolated from the old ParkingPage.css. */
+.p2-page { color:#152036; width:100%; max-width:1300px; margin:0 auto; }
+.p2-page button { font:inherit; }
+.p2-heading,.p2-zone-page-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px; }
+.p2-heading h1,.p2-zone-page-heading h1 { margin:7px 0; font-size:clamp(23px,2.6vw,34px); letter-spacing:-.04em; }
+.p2-heading p,.p2-zone-page-heading p,.p2-section-top p,.p2-map-top p { margin:4px 0; color:#65748b; font-size:14px; }
+.p2-heading>div:first-child { min-width:0; }
+.p2-text-button { display:block; background:none; border:0; padding:0; color:#0b5fd4; cursor:pointer; font-weight:650!important; margin-bottom:18px; }
+.p2-eyebrow { font-size:11px; font-weight:750; letter-spacing:.11em; color:#397ac7; }
+.p2-outline-button { border:1px solid #cddcf0; background:white; border-radius:12px; padding:11px 15px; color:#155abd; cursor:pointer; font-weight:650!important; white-space:nowrap; }
+.p2-outline-button:disabled { opacity:.5; cursor:wait; }
+.p2-notice,.p2-zone-info { background:#eaf3ff; border:1px solid #d2e2f8; border-radius:12px; padding:12px 16px; margin-bottom:18px; color:#355675; font-size:13px; }
+.p2-map-card,.p2-zone-list,.p2-spaces-card { background:white; border:1px solid #e1e8f1; border-radius:19px; box-shadow:0 6px 22px #172b4b0b; padding:20px; margin-bottom:20px; }
+.p2-map-top,.p2-section-top { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:15px; }
+.p2-map-top h2,.p2-section-top h2 { font-size:18px; margin:0; letter-spacing:-.02em; }
+.p2-map-toggle { display:flex; flex-wrap:wrap; background:#f1f5fb; padding:4px; border-radius:12px; }
+.p2-map-toggle button { border:0; background:transparent; color:#4d617e; padding:9px 11px; border-radius:9px; font-size:12px; cursor:pointer; }
+.p2-map-toggle button.active { background:white; color:#0b5fd4; box-shadow:0 2px 8px #1f3b6218; font-weight:700; }
+.p2-map-viewport { overflow:hidden; position:relative; border:1px solid #e4eaf1; border-radius:14px; background:#eef5ed; user-select:none; }
+.p2-map-viewport--focused { max-height:min(58vw,620px); }
+.p2-map-layer { position:relative; width:100%; transform-origin:50% 50%; touch-action:none; }
+.p2-map-layer img { display:block; width:100%; height:auto; pointer-events:none; }
+.p2-map-hotspot { position:absolute; transform:translate(-50%,-50%); width:8%; height:11%; border:2px solid transparent; border-radius:16px; background:transparent; cursor:pointer; padding:0; }
+.p2-map-hotspot:hover,.p2-map-hotspot:focus-visible { background:#ffffff35; border-color:#ffffff; outline:3px solid #0b5fd4; outline-offset:0; }
+.p2-screenreader { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; }
+.p2-map-controls { position:absolute; top:14px; right:14px; display:flex; gap:4px; align-items:center; padding:5px; border-radius:12px; background:#ffffffed; box-shadow:0 3px 16px #0e204b22; }
+.p2-map-controls button { background:#f3f7fd; border:0; border-radius:9px; padding:7px 11px; cursor:pointer; color:#0b5fd4; font-weight:750; }
+.p2-map-controls button:disabled { opacity:.35; }
+.p2-map-controls span { min-width:48px; text-align:center; font-size:12px; font-weight:700; }
+.p2-map-hint,.p2-last-refreshed { font-size:12px; color:#748298; margin:12px 0 0; }
+.p2-zone-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+.p2-zone-card { display:flex; flex-direction:column; align-items:flex-start; text-align:left; gap:9px; background:#fff; border:1px solid #e1e8f1; border-radius:15px; padding:17px; cursor:pointer; transition:box-shadow .15s,border-color .15s; }
+.p2-zone-card:hover,.p2-zone-card:focus-visible { border-color:#93b9ee; box-shadow:0 5px 18px #1b61bb19; }
+.p2-zone-marker { display:inline-flex; justify-content:center; align-items:center; width:43px; height:43px; border-radius:13px; flex-shrink:0; color:white; font-weight:800; }
+.p2-zone-card strong { font-size:15px; }
+.p2-zone-card>span:not(.p2-zone-marker) { color:#66758b; font-size:12px; }
+.p2-zone-card .p2-zone-arrow { color:#0b5fd4!important; font-weight:750; margin-top:auto; }
+.p2-error { display:flex; justify-content:space-between; gap:16px; border:1px solid #ffb4b4; padding:13px 18px; border-radius:12px; color:#ad3333; margin:16px 0; }
+.p2-error button { cursor:pointer; border:0; background:transparent; color:#b42626; text-decoration:underline; }
+.p2-zone-page-heading { justify-content:flex-start; margin-top:8px; }
+.p2-zone-page-heading .p2-outline-button { margin-left:auto; }
+.p2-summary-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:15px; }
+.p2-summary { background:white; border:1px solid #e1e8f1; border-radius:15px; padding:18px; display:flex; flex-direction:column; gap:7px; }
+.p2-summary strong { font-size:28px; letter-spacing:-.05em; }
+.p2-summary span { font-size:12px; color:#69778d; }
+.p2-space-filters { display:flex; gap:12px; margin:18px 0; justify-content:flex-end; flex-wrap:wrap; }
+.p2-space-filters label { color:#56667c; font-size:12px; display:flex; flex-direction:column; gap:6px; min-width:175px; }
+.p2-space-filters input,.p2-space-filters select { background:white; border:1px solid #ccd8e9; border-radius:10px; padding:11px 12px; font:inherit; color:#24344c; }
+.p2-space-grid { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:9px; max-height:440px; overflow-y:auto; padding:4px; }
+.p2-space { border:1px solid #ccd8e7; border-radius:12px; background:#eff4f9; padding:16px 4px; min-height:95px; cursor:pointer; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:7px; }
+.p2-space strong { font-size:11px; }
+.p2-space small { font-size:10px; }
+.p2-space-icon { font-size:19px; }
+.p2-space--available { background:#e9f8ec; border-color:#aadbbb; color:#18733c; }
+.p2-space--occupied { background:#fff0e2; border-color:#f7c793; color:#a8500a; }
+.p2-space--unknown { background:#f0f3f7; color:#65758a; }
+.p2-space--outofservice { background:#e7e9ec; color:#535965; }
+.p2-space--chosen { outline:3px solid #0b5fd4; outline-offset:1px; }
+.p2-space-details { display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin:15px 0; padding:12px 14px; background:#eef5ff; border-radius:12px; color:#263952; font-size:12px; }
+.p2-space-details button { margin-left:auto; border:0; background:transparent; color:#0b5fd4; cursor:pointer; }
+.p2-key { display:flex; flex-wrap:wrap; gap:15px; color:#67758a; font-size:12px; margin-top:18px; }
+.p2-empty { background:#f7f9fc; border:1px dashed #cbd8e8; border-radius:14px; padding:25px; color:#59677c; }
+.p2-empty h2 { color:#1d314c; }
+@media(max-width:950px) { .p2-zone-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .p2-space-grid { grid-template-columns:repeat(5,minmax(0,1fr)); } }
+@media(max-width:650px) { .p2-heading,.p2-map-top,.p2-section-top { align-items:flex-start; flex-direction:column; } .p2-summary-grid {grid-template-columns:repeat(2,minmax(0,1fr));} .p2-zone-grid {grid-template-columns:repeat(2,minmax(0,1fr));} .p2-space-grid {grid-template-columns:repeat(3,minmax(0,1fr));} .p2-map-controls { top:8px; right:8px; } .p2-map-viewport--focused {max-height:300px;} .p2-zone-page-heading {flex-wrap:wrap;} }
+/* Map-only crops both the right-side legend and bottom index while retaining all four zones. */
+.p2-map-viewport--focused { aspect-ratio: 1.46; max-height: none; }
+.p2-map-viewport--focused .p2-map-layer { width: 125%; }
+@media (max-width:650px) { .p2-map-viewport--focused { max-height: none; } }
+
+
+/* Parking-lot view — visual concept only. No live occupancy inferred. */
+.p3-lot-toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px; margin:18px 0 6px; }
+.p3-view-switch { display:flex; gap:4px; background:#eef3fa; border-radius:11px; padding:4px; }
+.p3-view-switch button { border:0; background:transparent; color:#5d718b; border-radius:8px; padding:9px 14px; cursor:pointer; font-size:13px; }
+.p3-view-switch button.active { background:white; color:#1259ba; font-weight:750; box-shadow:0 2px 8px #102a4b18; }
+.p3-lot-disclaimer { color:#708199; font-size:12px; }
+.p3-lot { border:1px solid #d8e3f1; border-radius:18px; background:linear-gradient(180deg,#eef4f9 0%,#e5edf5 100%); padding:18px; }
+.p3-lot-entrance { display:flex; align-items:center; justify-content:center; gap:18px; border-radius:10px; background:#e5faf0; color:#21704b; font-size:11px; letter-spacing:.16em; font-weight:800; padding:11px; margin-bottom:18px; }
+.p3-lot-entrance span { font-size:18px; }
+.p3-lot-scroll { display:flex; flex-direction:column; gap:20px; }
+.p3-parking-block { background:#fff; border:1px solid #d5e0ed; padding:14px 14px 18px; border-radius:14px; box-shadow:0 5px 15px #2a4e7910; min-width:0; }
+.p3-block-label { display:flex; justify-content:space-between; gap:12px; color:#425773; font-size:11px; font-weight:800; letter-spacing:.08em; margin-bottom:12px; }
+.p3-block-label span:last-child { color:#75879b; text-transform:none; font-weight:600; letter-spacing:0; }
+.p3-bay-row { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(66px,1fr); gap:3px; overflow-x:auto; padding:5px 4px 11px; scrollbar-width:thin; }
+.p3-bay { position:relative; min-height:86px; display:flex; flex-direction:column; justify-content:space-between; align-items:center; gap:8px; border:2px solid #c9d4e1; border-bottom:0; background:#f0f3f7; color:#53667d; padding:10px 2px 8px; cursor:pointer; clip-path:polygon(0 0,100% 0,100% 100%,0 100%); }
+.p3-bay::before { content:''; position:absolute; inset:0; border-bottom:2px dashed #c4cedb; pointer-events:none; }
+.p3-bay-number { font-size:10px; font-weight:750; white-space:nowrap; }
+.p3-bay-symbol { font-size:23px; line-height:1; color:#8191a5; font-weight:700; }
+.p3-bay-car { font-size:23px; line-height:1; }
+.p3-bay--available { background:#e2f7e9; color:#217447; border-color:#83cba2; }
+.p3-bay--available .p3-bay-symbol { color:#249053; }
+.p3-bay--occupied { background:#ffeadc; color:#a84c19; border-color:#efaa85; }
+.p3-bay--outofservice { background:#dadfe7; color:#4c5666; border-color:#9ba6b7; }
+.p3-bay--selected { outline:3px solid #1268db; outline-offset:2px; z-index:2; }
+.p3-bay--filtered { opacity:.22; cursor:not-allowed; }
+.p3-drive-aisle { display:flex; align-items:center; gap:12px; background:#3b4d63; border-radius:9px; padding:15px 14px; color:#e6edf4; margin:4px 0 14px; white-space:nowrap; }
+.p3-aisle-dashes { flex:1; border-top:2px dashed #becbd7; min-width:12px; opacity:.75; }
+.p3-aisle-title { font-size:10px; letter-spacing:.12em; font-weight:800; }
+.p3-aisle-direction { font-size:22px; }
+.p3-lot-footnote { color:#677a92; font-size:12px; margin:15px 2px 0; }
+.p3-lot--p4 { max-width:100%; }
+@media(max-width:650px) { .p3-lot{padding:10px;} .p3-parking-block{padding:10px;} .p3-bay-row{grid-auto-columns:62px;} .p3-drive-aisle{padding:10px;} }
+
+/* Refinement v2: slimmer bay depiction and contextual inspector. */
+.p4-lot-workspace { display:grid; grid-template-columns:minmax(0,1fr) 265px; align-items:start; gap:16px; }
+.p4-lot-workspace .p3-lot { min-width:0; padding:14px; }
+.p4-gate-row { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.p4-gate { display:inline-flex; align-items:center; border-radius:10px; padding:8px 13px; font-size:12px; font-weight:750; }
+.p4-gate--entry { color:#137249; background:#dff6e9; }
+.p4-gate--exit { color:#1259ba; background:#e0edff; }
+.p4-gate-label { font-size:11px; color:#62758b; font-weight:600; }
+.p4-lot-workspace .p3-parking-block { padding:12px; }
+.p4-lot-workspace .p3-bay-row { grid-auto-columns:58px; gap:2px; overflow-x:auto; padding:5px 3px 11px; }
+.p4-lot-workspace .p3-bay { min-height:78px; border-radius:2px 2px 0 0; padding:9px 2px 7px; }
+.p4-lot-workspace .p3-bay-number { font-size:9px; }
+.p4-lot-workspace .p3-drive-aisle { border-radius:7px; padding:8px 10px; margin:4px 0 10px; }
+.p4-lot-workspace .p3-aisle-direction { font-size:16px; }
+.p4-lot-workspace .p3-aisle-title { font-size:9px; }
+.p4-info-sidebar { position:sticky; top:16px; display:flex; flex-direction:column; gap:14px; }
+.p4-info-card { padding:18px; border-radius:16px; border:1px solid #d9e3ef; background:#fff; box-shadow:0 3px 15px #2b436012; }
+.p4-sidebar-eyebrow { display:block; font-size:10px; font-weight:800; letter-spacing:.12em; color:#1e6cba; }
+.p4-info-card h3 { font-size:17px; color:#193250; margin:9px 0 14px; }
+.p4-info-card p { font-size:12px; color:#60758d; line-height:1.65; margin:10px 0 0; }
+.p4-space-meta { margin:16px 0; }
+.p4-space-meta>div { display:flex; justify-content:space-between; gap:14px; border-bottom:1px solid #edf1f6; padding:11px 0; font-size:12px; }
+.p4-space-meta dt { color:#6a7a91; }
+.p4-space-meta dd { margin:0; text-align:right; font-weight:700; color:#253b59; overflow-wrap:anywhere; }
+.p4-clear-space { width:100%; background:#155dca; border:0; border-radius:10px; color:white; padding:10px 12px; cursor:pointer; font-weight:700; }
+.p4-status-pill { display:inline-block; border-radius:30px; padding:6px 11px; background:#e8edf4; color:#52627b; font-size:12px; font-weight:800; }
+.p4-status--available { background:#daf7e5; color:#147443; }
+.p4-status--occupied { background:#ffe4df; color:#a63832; }
+.p4-status--outofservice { background:#e1e3e7; color:#505965; }
+.p4-status-list { padding:0; margin:0; list-style:none; }
+.p4-status-list li { display:flex; align-items:center; gap:9px; font-size:12px; padding:9px 0; color:#40536e; }
+.p4-status-list li strong { margin-left:auto; }
+.p4-dot { display:inline-block; width:11px; height:11px; border-radius:3px; }
+.p4-dot--available { background:#4dbb78; }
+.p4-dot--occupied { background:#ec685d; }
+.p4-dot--unknown { background:#9baabd; }
+.p4-dot--outofservice { background:#616b7b; }
+.p4-info-card .p4-legend-footnote { border-top:1px solid #e8eef5; padding-top:12px; }
+@media(max-width:1100px) { .p4-lot-workspace { grid-template-columns:1fr; } .p4-info-sidebar { position:static; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:650px) { .p4-info-sidebar { grid-template-columns:1fr; } .p4-gate-label { order:3; flex-basis:100%; text-align:center; } }
+
+
+/* V3: ten bays per row, no horizontal scrollbar, stronger search guidance. */
+.p4-lot-workspace { grid-template-columns:minmax(0,1fr) 260px; }
+.p3-lot-scroll { min-width:0; overflow:visible; }
+.p4-lot-workspace .p3-parking-block { min-width:0; overflow:hidden; padding:12px; }
+.p4-lot-workspace .p3-bay-row {
+  display:grid;
+  grid-auto-flow:row;
+  grid-auto-columns:auto;
+  grid-template-columns:repeat(10,minmax(0,1fr));
+  gap:4px;
+  min-width:0;
+  overflow:visible;
+  padding:4px 0 6px;
+}
+.p4-lot-workspace .p3-bay {
+  box-sizing:border-box;
+  min-width:0;
+  width:100%;
+  min-height:69px;
+  gap:4px;
+  padding:7px 1px 5px;
+}
+.p4-lot-workspace .p3-bay-number { font-size:clamp(8px,.68vw,10px); }
+.p4-lot-workspace .p3-bay-symbol { font-size:17px; }
+.p4-lot-workspace .p3-bay--filtered { opacity:.65; }
+.p4-lot-workspace .p3-bay--search-target {
+  outline:3px solid #1469dd;
+  outline-offset:0;
+  background:#dceafd;
+  color:#174a94;
+  z-index:2;
+  box-shadow:0 0 0 3px #1469dd1f;
+}
+.p4-lot-workspace .p3-drive-aisle {
+  min-height:33px;
+  padding:5px 10px;
+  margin:2px 0 8px;
+}
+.p4-lot-workspace .p3-drive-aisle .p3-aisle-direction { font-size:14px; }
+.p4-lot-workspace .p3-drive-aisle .p3-aisle-title { font-size:9px; }
+.p3-bay:focus-visible { outline:3px solid #1469dd; outline-offset:1px; }
+@media(max-width:1100px) {
+  .p4-lot-workspace { grid-template-columns:minmax(0,1fr); }
+  .p4-info-sidebar { position:static; }
+}
+@media(max-width:620px) {
+  .p4-lot-workspace .p3-bay-row { grid-template-columns:repeat(5,minmax(0,1fr)); }
+  .p4-lot-workspace .p3-bay-number { font-size:9px; }
+  .p4-lot-workspace .p3-bay { min-height:60px; }
+}
+
+
+/* V3.1: make the clicked bay visibly selected, even when it is not the search target.
+   Inset outlines remain visible inside the parking section's clipped bounds. */
+.p4-lot-workspace .p3-bay--selected,
+.p4-lot-workspace .p3-bay--selected.p3-bay--search-target {
+  background:#dbeafe;
+  color:#124b99;
+  border-color:#175cd3;
+  outline:2px solid #175cd3;
+  outline-offset:-2px;
+  box-shadow:inset 0 0 0 2px #175cd3, 0 2px 9px rgba(23,92,211,.22);
+  opacity:1;
+  z-index:5;
+}
+.p4-lot-workspace .p3-bay--selected .p3-bay-number {
+  color:#103f86;
+  font-weight:900;
+}
+.p4-lot-workspace .p3-bay--selected .p3-bay-symbol {
+  color:#175cd3;
+}

@@ -7,86 +7,88 @@ namespace Campus.Api.Data.Seed;
 
 public static class ParkingDataSeeder
 {
-    public static async Task SeedAsync(
-        CampusDbContext db)
+    public static async Task SeedAsync(CampusDbContext db)
     {
-        // Never add demo data if zones already exist.
-        if (await db.ParkingZones.AnyAsync())
+        // Never seed into a database containing parking records.
+        if (await db.ParkingZones.AnyAsync() ||
+            await db.ParkingSpaces.AnyAsync())
         {
+            Console.WriteLine(
+                "Parking records already exist. Skipping seeding.");
             return;
         }
 
-        var zones = new[]
+        var zoneDefinitions = new[]
         {
-            new ParkingZone
+            new
             {
-                Code = "DEMO-A",
-                Name = "Demo Parking Area A",
-                Description = "Synthetic public parking area",
+                Code = "P1",
+                Name = "Main Gate Parking",
+                Description = "Parking area near the main campus entrance",
                 ZoneType = "Public",
-                IsActive = true
+                Capacity = 200
             },
-            new ParkingZone
+            new
             {
-                Code = "DEMO-B",
-                Name = "Demo Parking Area B",
-                Description = "Synthetic public parking area",
+                Code = "P2",
+                Name = "Building G Parking",
+                Description = "Parking area near Building G",
                 ZoneType = "Public",
-                IsActive = true
+                Capacity = 150
             },
-            new ParkingZone
+            new
             {
-                Code = "DEMO-R",
-                Name = "Demo Residential Parking",
-                Description = "Synthetic residential parking area",
+                Code = "P3",
+                Name = "Residential Parking",
+                Description = "Parking area serving campus residences",
                 ZoneType = "Residential",
-                IsActive = true
+                Capacity = 100
+            },
+            new
+            {
+                Code = "P4",
+                Name = "Administration Parking",
+                Description = "Parking area near administration buildings",
+                ZoneType = "Staff",
+                Capacity = 50
             }
         };
 
-        db.ParkingZones.AddRange(zones);
+        await using var transaction =
+            await db.Database.BeginTransactionAsync();
 
-        var capacities = new[] { 20, 15, 10 };
-
-        for (int zoneIndex = 0;
-             zoneIndex < zones.Length;
-             zoneIndex++)
+        foreach (var definition in zoneDefinitions)
         {
-            var zone = zones[zoneIndex];
+            var zone = new ParkingZone
+            {
+                Code = definition.Code,
+                Name = definition.Name,
+                Description = definition.Description,
+                ZoneType = definition.ZoneType,
+                IsActive = true
+            };
+
+            db.ParkingZones.Add(zone);
 
             for (int number = 1;
-                 number <= capacities[zoneIndex];
+                 number <= definition.Capacity;
                  number++)
             {
-                // Predictable synthetic occupancy pattern.
-                ParkingSpaceStatus status;
-
-                if (number % 10 == 0)
-                {
-                    status = ParkingSpaceStatus.Unknown;
-                }
-                else if (number % 3 == 0)
-                {
-                    status = ParkingSpaceStatus.Occupied;
-                }
-                else
-                {
-                    status = ParkingSpaceStatus.Available;
-                }
-
-                var space = new ParkingSpace
+                db.ParkingSpaces.Add(new ParkingSpace
                 {
                     ParkingZoneId = zone.Id,
-                    SpaceNumber = $"{zone.Code}-{number:D2}",
-                    Status = status,
-                    Type = ParkingSpaceType.Standard,
-                    LastUpdatedAt = DateTime.UtcNow
-                };
-
-                db.ParkingSpaces.Add(space);
+                    SpaceNumber =
+                        $"{definition.Code}-{number:D3}",
+                    Status = ParkingSpaceStatus.Unknown,
+                    Type = ParkingSpaceType.Standard
+                });
             }
         }
 
         await db.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        Console.WriteLine(
+            "Four parking zones and 500 spaces seeded successfully.");
     }
 }
