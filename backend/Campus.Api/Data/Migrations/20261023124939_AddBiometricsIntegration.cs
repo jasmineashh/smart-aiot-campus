@@ -4,10 +4,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Campus.Api.Migrations
+namespace Campus.Api.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialBiometrics : Migration
+    public partial class AddBiometricsIntegration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
