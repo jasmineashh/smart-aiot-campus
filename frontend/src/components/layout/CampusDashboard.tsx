@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { CampusUser } from '../../services/authService'
 import ParkingPage from '../../pages/parking/ParkingPage'
 import './CampusDashboard.css'
+import MyVehiclesPage from '../../pages/parking/MyVehiclesPage'
 
 interface DashboardProps {
   user: CampusUser
@@ -13,6 +14,7 @@ interface DashboardProps {
 type Page =
   | 'overview'
   | 'parking'
+  | 'my-vehicles'
   | 'parking-admin'
 
 type CampusModule = {
@@ -71,8 +73,10 @@ export default function CampusDashboard({
   ]
 
   const pageTitle =
-    page === 'parking'
-      ? 'Smart Parking'
+  page === 'parking'
+    ? 'Smart Parking'
+    : page === 'my-vehicles'
+      ? 'My Vehicles'
       : page === 'parking-admin'
         ? 'Parking Management'
         : 'Overview'
@@ -149,6 +153,24 @@ export default function CampusDashboard({
             </button>
           ))}
 
+          
+<button
+  type="button"
+  className={
+    page === 'my-vehicles'
+      ? 'sidebar-link active'
+      : 'sidebar-link'
+  }
+  aria-current={
+    page === 'my-vehicles' ? 'page' : undefined
+  }
+  onClick={() => navigate('my-vehicles')}
+>
+  <span className="sidebar-link-icon">V</span>
+  My Vehicles
+</button>
+
+
           {isAdmin && (
             <>
               <span className="sidebar-section-label">
@@ -222,6 +244,7 @@ export default function CampusDashboard({
         </header>
 
         <main className="dashboard-main">
+          {page === 'my-vehicles' && <MyVehiclesPage />}
           {page === 'parking' && (
             <ParkingPage
               onBack={() => navigate('overview')}

@@ -56,6 +56,41 @@ public static class ParkingEndpoints
             return Results.Ok(zones);
         });
 
+        
+        // GET VEHICLES OWNED BY THE LOGGED-IN USER
+        parking.MapGet("/my-vehicles", async (
+            HttpContext http,
+            CampusDbContext db) =>
+        {
+            var ownerId = http.User.FindFirst(
+                System.Security.Claims.ClaimTypes.NameIdentifier
+            )?.Value;
+
+            if (string.IsNullOrWhiteSpace(ownerId))
+            {
+                return Results.Unauthorized();
+            }
+
+            var vehicles = await db.Vehicles
+                .AsNoTracking()
+                .Where(v => v.OwnerId == ownerId)
+                .OrderByDescending(v => v.RegisteredAt)
+                .Select(v => new
+                {
+                    v.Id,
+                    v.PlateNumber,
+                    v.Make,
+                    v.Model,
+                    v.Color,
+                    v.IsApproved,
+                    v.RegisteredAt
+                })
+                .ToListAsync();
+
+            return Results.Ok(vehicles);
+        });
+
+
         // GET ONE PARKING ZONE
         parking.MapGet("/zones/{id:guid}", async (
             Guid id,
@@ -94,4 +129,5 @@ public static class ParkingEndpoints
                 : Results.Ok(zone);
         });
     }
+    
 }

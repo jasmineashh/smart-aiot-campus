@@ -1,0 +1,278 @@
+
+.mv-page {
+  width: 100%;
+  color: #17233b;
+}
+
+.mv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.mv-eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #1764d5;
+}
+
+.mv-header h1 {
+  font-size: clamp(26px, 3vw, 34px);
+  margin: 10px 0;
+  font-weight: 800;
+}
+
+.mv-header p,
+.mv-section-title p {
+  color: #78869b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.mv-refresh {
+  background: #1458bd;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 22px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.mv-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mv-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 32px;
+}
+
+.mv-stat {
+  background: white;
+  border: 1px solid #e6ebf3;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 4px 18px rgba(20, 40, 80, 0.03);
+}
+
+.mv-stat span,
+.mv-details span {
+  display: block;
+  font-size: 13px;
+  color: #8290a3;
+  margin-bottom: 9px;
+}
+
+.mv-stat strong {
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.mv-green {
+  color: #15996a;
+}
+
+.mv-orange {
+  color: #d98a13;
+}
+
+.mv-section-title {
+  margin-bottom: 20px;
+}
+
+.mv-section-title h2 {
+  margin: 0 0 5px;
+  font-size: 21px;
+}
+
+.mv-section-title p {
+  margin: 0;
+}
+
+.mv-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(100%, 340px), 1fr)
+  );
+  gap: 20px;
+}
+
+.mv-card {
+  background: white;
+  border: 1px solid #e6ebf3;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 5px 22px rgba(20, 40, 80, 0.04);
+}
+
+.mv-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 23px 23px 15px;
+}
+
+.mv-card-label {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  color: #8995a6;
+}
+
+.mv-card h3 {
+  font-size: 20px;
+  margin: 8px 0 0;
+}
+
+.mv-badge {
+  display: inline-flex;
+  border-radius: 25px;
+  padding: 7px 11px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.mv-badge.approved {
+  background: #dcf8eb;
+  color: #128358;
+}
+
+.mv-badge.pending {
+  background: #fff2d8;
+  color: #a96c0c;
+}
+
+.mv-plate {
+  max-width: 290px;
+  margin: 16px auto 24px;
+  border: 3px solid #233348;
+  border-radius: 9px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 9px rgba(0, 0, 0, 0.08);
+}
+
+.mv-plate-header {
+  background: #1459bd;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 22px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.mv-plate-number {
+  min-height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  font-size: 24px;
+  font-weight: 900;
+  color: #101827;
+  overflow-wrap: anywhere;
+  unicode-bidi: plaintext;
+}
+
+.mv-details {
+  padding: 20px 23px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  border-top: 1px solid #edf0f5;
+}
+
+.mv-details strong {
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.mv-card-footer {
+  background: #f7f9fd;
+  padding: 15px 23px;
+  font-size: 12px;
+  color: #65748a;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+}
+
+.mv-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mv-dot.green {
+  background: #15996a;
+}
+
+.mv-dot.orange {
+  background: #e5a12d;
+}
+
+.mv-message {
+  padding: 48px 24px;
+  border: 1px solid #e6ebf3;
+  border-radius: 16px;
+  background: white;
+  text-align: center;
+  color: #65748a;
+}
+
+.mv-message h3 {
+  color: #17233b;
+}
+
+.mv-error {
+  color: #b42318;
+}
+
+.mv-error button {
+  cursor: pointer;
+  margin-top: 8px;
+  padding: 9px 18px;
+}
+
+.mv-empty-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 15px;
+  background: #e9f1ff;
+  color: #1458bd;
+  font-weight: 800;
+  font-size: 24px;
+  margin: 0 auto 15px;
+}
+
+@media (max-width: 700px) {
+  .mv-header {
+    flex-direction: column;
+  }
+
+  .mv-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .mv-stat {
+    padding: 15px 20px;
+  }
+
+  .mv-stat strong {
+    font-size: 24px;
+  }
+}

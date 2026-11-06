@@ -56,3 +56,23 @@ export function getParkingZones(signal?: AbortSignal): Promise<ParkingZone[]> {
 export function getParkingZoneDetails(zoneId: string, signal?: AbortSignal): Promise<ParkingZoneDetails> {
   return parkingFetch<ParkingZoneDetails>(`/api/parking/zones/${encodeURIComponent(zoneId)}`, signal)
 }
+
+export interface RegisteredVehicle {
+  id: string
+  plateNumber: string
+  make: string | null
+  model: string | null
+  color: string | null
+  isApproved: boolean
+  registeredAt: string
+}
+
+export function getMyVehicles(
+  signal?: AbortSignal
+): Promise<RegisteredVehicle[]> {
+  return parkingFetch<RegisteredVehicle[]>(
+    '/api/parking/my-vehicles',
+    signal
+  )
+}
+
