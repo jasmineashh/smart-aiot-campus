@@ -98,20 +98,24 @@ using (var scope = app.Services.CreateScope())
     await IdentityRoleSeeder.SeedRolesAsync(services);
 
     if (app.Environment.IsDevelopment())
+{
+    // Optional demo university accounts
+    if (app.Configuration.GetValue<bool>(
+        "DevSeed:UsersEnabled"))
     {
-        // Optional demo student account
         await DevelopmentUserSeeder.SeedAsync(services);
-
-        // Optional parking demo data
-        if (app.Configuration.GetValue<bool>(
-            "DevSeed:ParkingEnabled"))
-        {
-            var db = services
-                .GetRequiredService<CampusDbContext>();
-
-            await ParkingDataSeeder.SeedAsync(db);
-        }
     }
+
+    // Optional parking demo data
+    if (app.Configuration.GetValue<bool>(
+        "DevSeed:ParkingEnabled"))
+    {
+        var db = services
+            .GetRequiredService<CampusDbContext>();
+
+        await ParkingDataSeeder.SeedAsync(db);
+    }
+}
 }
 
 // ==========================================
