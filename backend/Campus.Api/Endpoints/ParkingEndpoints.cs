@@ -128,6 +128,40 @@ public static class ParkingEndpoints
                 ? Results.NotFound()
                 : Results.Ok(zone);
         });
+
+        // ADMIN: GET ALL REGISTERED VEHICLES
+        parking.MapGet("/admin/vehicles", async (
+            CampusDbContext db) =>
+        {
+            var vehicles = await db.Vehicles
+                .AsNoTracking()
+                .OrderByDescending(v => v.RegisteredAt)
+                .Select(v => new
+                {
+                    v.Id,
+                    v.PlateNumber,
+                    v.Make,
+                    v.Model,
+                    v.Color,
+                    v.IsApproved,
+                    v.RegisteredAt,
+
+                    Owner = new
+                    {
+                        v.Owner.Id,
+                        v.Owner.FullName,
+                        v.Owner.UniversityId,
+                        v.Owner.Email,
+                        v.Owner.Department
+                    }
+                })
+                .ToListAsync();
+
+            return Results.Ok(vehicles);
+        })
+        .RequireAuthorization(policy =>
+            policy.RequireRole("Admin"));
+
     }
     
 }

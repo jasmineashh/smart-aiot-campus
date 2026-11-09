@@ -7,12 +7,18 @@ import {
   type CampusUser,
 } from './services/authService'
 
+import CampusDashboard from './components/layout/CampusDashboard'
+import VehicleRegistrationForm from './pages/parking/VehicleRegistrationForm'
+
 import './App.css'
 
-import CampusDashboard from './components/layout/CampusDashboard'
-
-
 function App() {
+  // Development-only frontend preview
+  const isVehiclePreview =
+    import.meta.env.DEV &&
+    new URLSearchParams(window.location.search).get('preview') ===
+      'vehicle-registration'
+
   const [universityId, setUniversityId] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -24,6 +30,12 @@ function App() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    // The preview does not require authentication or an API.
+    if (isVehiclePreview) {
+      setCheckingSession(false)
+      return
+    }
+
     let active = true
 
     async function checkSession() {
@@ -51,7 +63,7 @@ function App() {
     return () => {
       active = false
     }
-  }, [])
+  }, [isVehiclePreview])
 
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>
@@ -103,17 +115,121 @@ function App() {
       setLoading(false)
     }
   }
-  
-if (!checkingSession && user) {
-  return (
-    <CampusDashboard
-      user={user}
-      onLogout={handleLogout}
-      loggingOut={loading}
-    />
-  )
-}
 
+  // ==========================================
+  // DEVELOPMENT-ONLY VEHICLE FORM PREVIEW
+  // ==========================================
+
+  if (isVehiclePreview) {
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          background: '#f5f7fb',
+          padding: '40px 20px',
+          color: '#17233b',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '1000px',
+            margin: '0 auto',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '20px',
+              flexWrap: 'wrap',
+              marginBottom: '25px',
+            }}
+          >
+            <div>
+              <span
+                style={{
+                  color: '#1764d5',
+                  fontWeight: 800,
+                  fontSize: '12px',
+                  letterSpacing: '1.5px',
+                }}
+              >
+                SMART CAMPUS / PARKING
+              </span>
+
+              <h1
+                style={{
+                  fontSize: '32px',
+                  margin: '10px 0',
+                }}
+              >
+                Vehicle Registration Preview
+              </h1>
+
+              <p style={{ color: '#78869b' }}>
+                Test Egyptian license plate registration
+                without connecting to the database.
+              </p>
+            </div>
+
+            <a
+              href="/"
+              style={{
+                background: '#1458bd',
+                color: '#ffffff',
+                textDecoration: 'none',
+                borderRadius: '10px',
+                padding: '12px 20px',
+                fontWeight: 700,
+              }}
+            >
+              Back to Login
+            </a>
+          </div>
+
+          <div
+            style={{
+              background: '#eaf3ff',
+              border: '1px solid #cbdfff',
+              borderRadius: '12px',
+              padding: '15px 20px',
+              fontSize: '14px',
+              color: '#285b9c',
+            }}
+          >
+            Development Preview Mode — No authentication
+            or database connection is required.
+            Registrations are not saved.
+          </div>
+
+          <VehicleRegistrationForm
+            onClose={() => {
+              window.location.assign('/')
+            }}
+          />
+        </div>
+      </main>
+    )
+  }
+
+  // ==========================================
+  // AUTHENTICATED CAMPUS DASHBOARD
+  // ==========================================
+
+  if (!checkingSession && user) {
+    return (
+      <CampusDashboard
+        user={user}
+        onLogout={handleLogout}
+        loggingOut={loading}
+      />
+    )
+  }
+
+  // ==========================================
+  // EXISTING SMART CAMPUS LOGIN PAGE
+  // ==========================================
 
   return (
     <main className="login-page">
@@ -181,6 +297,7 @@ if (!checkingSession && user) {
             {checkingSession ? (
               <>
                 <h2>Checking session</h2>
+
                 <p className="form-subtitle">
                   Connecting to your university account...
                 </p>
@@ -203,9 +320,7 @@ if (!checkingSession && user) {
 
                     <div>
                       <strong>{user.fullName}</strong>
-                      <span>
-                        {user.roles.join(', ')}
-                      </span>
+                      <span>{user.roles.join(', ')}</span>
                     </div>
                   </div>
 
@@ -321,9 +436,7 @@ if (!checkingSession && user) {
                     className="sign-in-btn"
                     disabled={loading}
                   >
-                    {loading
-                      ? 'Signing in...'
-                      : 'Sign In'}
+                    {loading ? 'Signing in...' : 'Sign In'}
 
                     {!loading && (
                       <span aria-hidden="true">→</span>
@@ -373,7 +486,7 @@ if (!checkingSession && user) {
           </div>
 
           <div className="form-bottom">
-             AIoT Smart Campus
+            AIoT Smart Campus
           </div>
         </div>
       </section>

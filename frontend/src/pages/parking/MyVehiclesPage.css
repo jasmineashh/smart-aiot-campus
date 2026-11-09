@@ -276,3 +276,24 @@
     font-size: 24px;
   }
 }
+.mv-header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mv-register-btn {
+  background: #1458bd;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  padding: 12px 22px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 700px) {
+  .mv-header-actions {
+    width: 100%;
+  }
+}
