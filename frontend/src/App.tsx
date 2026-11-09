@@ -9,6 +9,7 @@ import {
 
 import CampusDashboard from './components/layout/CampusDashboard'
 import VehicleRegistrationForm from './pages/parking/VehicleRegistrationForm'
+import AdminVehiclesPage from './pages/parking/AdminVehiclesPage'
 
 import './App.css'
 
@@ -18,6 +19,11 @@ function App() {
     import.meta.env.DEV &&
     new URLSearchParams(window.location.search).get('preview') ===
       'vehicle-registration'
+
+  const isAdminPreview =
+    import.meta.env.DEV &&
+    new URLSearchParams(window.location.search).get('preview') ===
+      'admin-vehicles'
 
   const [universityId, setUniversityId] = useState('')
   const [password, setPassword] = useState('')
@@ -31,7 +37,7 @@ function App() {
 
   useEffect(() => {
     // The preview does not require authentication or an API.
-    if (isVehiclePreview) {
+    if (isVehiclePreview || isAdminPreview) {
       setCheckingSession(false)
       return
     }
@@ -63,7 +69,7 @@ function App() {
     return () => {
       active = false
     }
-  }, [isVehiclePreview])
+  }, [isVehiclePreview, isAdminPreview])
 
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>
@@ -114,6 +120,14 @@ function App() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // ==========================================
+  // DEVELOPMENT-ONLY ADMIN VEHICLES PREVIEW
+  // ==========================================
+
+  if (isAdminPreview) {
+    return <AdminVehiclesPage />
   }
 
   // ==========================================
