@@ -151,6 +151,7 @@ app.MapAuthEndpoints();
 app.MapParkingEndpoints();
 
 // New biometric API controllers
+   app.UseStaticFiles();
 app.MapControllers();
 
 // ==========================================

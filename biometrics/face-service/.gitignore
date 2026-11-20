@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+dataset/
+*.jpg
+*.png
+people_mapping.csv
+unregistered_plates.csv
