@@ -31,16 +31,13 @@ function App() {
 
   const [user, setUser] = useState<CampusUser | null>(null)
   const [loading, setLoading] = useState(false)
-  const [checkingSession, setCheckingSession] = useState(true)
+  const [checkingSession, setCheckingSession] = useState(!isVehiclePreview && !isAdminPreview)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
 
   useEffect(() => {
     // The preview does not require authentication or an API.
-    if (isVehiclePreview || isAdminPreview) {
-      setCheckingSession(false)
-      return
-    }
+    if (isVehiclePreview || isAdminPreview) return
 
     let active = true
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
 import {
   getParkingZones,
   getParkingZoneDetails,
@@ -47,26 +47,34 @@ export default function ParkingPage({ onBack }: ParkingPageProps) {
   const [error, setError] = useState('')
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null)
 
-  const loadZones = useCallback(async (signal?: AbortSignal) => {
+  const [refreshCount, setRefreshCount] = useState(0)
+
+  function refreshZones() {
     setLoading(true)
     setError('')
-    try {
-      const result = await getParkingZones(signal)
-      if (signal?.aborted) return
-      setZones(result.filter(z => z.isActive))
-      setLastRefreshed(new Date())
-    } catch (err) {
-      if (!signal?.aborted) setError(err instanceof Error ? err.message : 'Unable to load parking zones.')
-    } finally {
-      if (!signal?.aborted) setLoading(false)
-    }
-  }, [])
+    setRefreshCount(n => n + 1)
+  }
 
   useEffect(() => {
     const controller = new AbortController()
-    void loadZones(controller.signal)
+    const signal = controller.signal
+
+    async function loadZones() {
+      try {
+        const result = await getParkingZones(signal)
+        if (signal.aborted) return
+        setZones(result.filter(z => z.isActive))
+        setLastRefreshed(new Date())
+      } catch (err) {
+        if (!signal.aborted) setError(err instanceof Error ? err.message : 'Unable to load parking zones.')
+      } finally {
+        if (!signal.aborted) setLoading(false)
+      }
+    }
+
+    void loadZones()
     return () => controller.abort()
-  }, [loadZones])
+  }, [refreshCount])
 
   const area = CAMPUS_AREAS.find(a => a.code === selectedCode)
   const chosenZone = zones.find(z => z.code.toUpperCase() === selectedCode)
@@ -75,7 +83,7 @@ export default function ParkingPage({ onBack }: ParkingPageProps) {
     <div className="p2-page">
       {selectedCode && area ? (
         <ZoneSpacePage
-          key={selectedCode}
+          key={`${selectedCode}:${chosenZone?.id ?? "unsynced"}`}
           area={area}
           zone={chosenZone}
           onBack={() => setSelectedCode(null)}
@@ -89,7 +97,7 @@ export default function ParkingPage({ onBack }: ParkingPageProps) {
               <h1>Find your parking spot</h1>
               <p>Explore the campus and select a parking area to view individual spaces.</p>
             </div>
-            <button className="p2-outline-button" type="button" onClick={() => void loadZones()} disabled={loading}>
+            <button className="p2-outline-button" type="button" onClick={refreshZones} disabled={loading}>
               {loading ? 'Loading…' : '↻ Refresh'}
             </button>
           </header>
@@ -100,7 +108,7 @@ export default function ParkingPage({ onBack }: ParkingPageProps) {
 
           <CampusMap onChoose={setSelectedCode} />
 
-          {error && <div className="p2-error" role="alert">{error} <button type="button" onClick={() => void loadZones()}>Retry</button></div>}
+          {error && <div className="p2-error" role="alert">{error} <button type="button" onClick={refreshZones}>Retry</button></div>}
 
           <section className="p2-zone-list" aria-labelledby="p2-zone-list-heading">
             <div className="p2-section-top">
@@ -215,12 +223,18 @@ function ZoneSpacePage({ area, zone, onBack }: { area: Area; zone?: ParkingZone;
   const [selectedSpace, setSelectedSpace] = useState<ParkingSpace | null>(null)
   const [refreshCount, setRefreshCount] = useState(0)
 
-  useEffect(() => {
-    if (!zone) return
-    const controller = new AbortController()
+  const zoneId = zone?.id
+
+  function refreshSpaces() {
     setLoading(true)
     setError('')
-    void getParkingZoneDetails(zone.id, controller.signal)
+    setRefreshCount(n => n + 1)
+  }
+
+  useEffect(() => {
+    if (!zoneId) return
+    const controller = new AbortController()
+    void getParkingZoneDetails(zoneId, controller.signal)
       .then(result => {
         if (!controller.signal.aborted) {
           setSpaces(result.spaces)
@@ -232,7 +246,7 @@ function ZoneSpacePage({ area, zone, onBack }: { area: Area; zone?: ParkingZone;
       })
       .finally(() => { if (!controller.signal.aborted) setLoading(false) })
     return () => controller.abort()
-  }, [zone?.id, refreshCount])
+  }, [zoneId, refreshCount])
 
   const counts = {
     available: spaces.filter(s => normalizeStatus(s.status) === 'Available').length,
@@ -251,7 +265,7 @@ function ZoneSpacePage({ area, zone, onBack }: { area: Area; zone?: ParkingZone;
       <div className="p2-zone-page-heading">
         <span className="p2-zone-marker" style={{ backgroundColor: area.color }}>{area.code}</span>
         <div><span className="p2-eyebrow">PARKING AREA DETAILS</span><h1>{area.name}</h1><p>Individual parking spaces · database-backed status</p></div>
-        {zone && <button className="p2-outline-button" type="button" onClick={() => setRefreshCount(n => n + 1)} disabled={loading}>↻ Refresh</button>}
+        {zone && <button className="p2-outline-button" type="button" onClick={refreshSpaces} disabled={loading}>↻ Refresh</button>}
       </div>
       {!zone ? (
         <div className="p2-empty" role="status">
@@ -285,7 +299,7 @@ function ZoneSpacePage({ area, zone, onBack }: { area: Area; zone?: ParkingZone;
                 {['All', 'Available', 'Occupied', 'Unknown', 'OutOfService'].map(s => <option key={s} value={s}>{s === 'OutOfService' ? 'Out of service' : s}</option>)}
               </select></label>
             </div>
-            {error ? <div className="p2-error" role="alert">{error} <button type="button" onClick={() => setRefreshCount(n => n + 1)}>Retry</button></div>
+            {error ? <div className="p2-error" role="alert">{error} <button type="button" onClick={refreshSpaces}>Retry</button></div>
               : loading ? <p role="status">Loading parking spaces…</p>
               : shown.length === 0 ? <div className="p2-empty">No spaces match the current filters.</div>
               : view === 'lot' ? (
