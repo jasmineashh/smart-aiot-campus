@@ -1,6 +1,8 @@
+
 using Campus.Api.Data;
 using Campus.Api.Dtos;
 using Campus.Api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +10,9 @@ namespace Campus.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin")]
+[AutoValidateAntiforgeryToken]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public class AlertsController : ControllerBase
 {
     private readonly CampusDbContext _db;
@@ -20,12 +25,17 @@ public class AlertsController : ControllerBase
     // GET api/alerts?resolved=false&type=UnknownFace
     [HttpGet]
     public async Task<ActionResult<List<AlertDto>>> GetAll(
-        [FromQuery] bool? resolved, [FromQuery] AlertType? type)
+        [FromQuery] bool? resolved,
+        [FromQuery] AlertType? type)
     {
-        var query = _db.Alerts.AsNoTracking().AsQueryable();
+        var query = _db.Alerts
+            .AsNoTracking()
+            .AsQueryable();
 
         if (resolved is not null)
-            query = query.Where(a => a.IsResolved == resolved);
+            query = query.Where(
+                a => a.IsResolved == resolved);
+
         if (type is not null)
             query = query.Where(a => a.Type == type);
 
@@ -41,30 +51,38 @@ public class AlertsController : ControllerBase
                 IsResolved = a.IsResolved,
                 AttendanceLogId = a.AttendanceLogId,
                 CameraName = a.AttendanceLog.Camera.Name,
-                PersonName = a.AttendanceLog.Person != null ? a.AttendanceLog.Person.FullName : null
+                PersonName = a.AttendanceLog.Person != null
+                    ? a.AttendanceLog.Person.FullName
+                    : null
             })
             .ToListAsync();
 
         return Ok(alerts);
     }
 
-    // GET api/alerts/unresolved-count   (for the red badge on the dashboard)
+    // GET api/alerts/unresolved-count
     [HttpGet("unresolved-count")]
     public async Task<ActionResult<int>> UnresolvedCount()
     {
-        return Ok(await _db.Alerts.CountAsync(a => !a.IsResolved));
+        return Ok(await _db.Alerts.CountAsync(
+            a => !a.IsResolved));
     }
 
-    // PUT api/alerts/1/resolve   (security marks it as handled)
+    // PUT api/alerts/1/resolve
     [HttpPut("{id:int}/resolve")]
     public async Task<IActionResult> Resolve(int id)
     {
         var alert = await _db.Alerts.FindAsync(id);
+
         if (alert is null)
-            return NotFound(new { message = $"Alert {id} not found." });
+            return NotFound(new
+            {
+                message = $"Alert {id} not found."
+            });
 
         alert.IsResolved = true;
         await _db.SaveChangesAsync();
+
         return NoContent();
     }
 }

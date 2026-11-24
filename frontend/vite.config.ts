@@ -13,6 +13,11 @@ export default defineConfig({
         target: 'http://127.0.0.1:5200',
         changeOrigin: true,
       },
+
+      '/biometrics.html': {
+        target: 'http://127.0.0.1:5200',
+        changeOrigin: true,
+      },
     },
   },
 })

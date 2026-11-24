@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Smart Campus Biometrics</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --panel: #ffffff; --ink: #1c1f24; --muted: #6b7280; --line: #e3e6ea;
+    --accent: #2f5bea; --accent-ink: #ffffff; --ok: #1f9d55; --ok-bg: #e3f6ea; --warn: #b7791f; --warn-bg: #fdf3e1;
+    --bad: #d64545; --bad-bg: #fde8e8; --idle: #c9ced6; --idle-bg: #eef0f3; --room: #ffffff; --hl: #ffcf33;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121418; --panel: #1b1e24; --ink: #e8eaed; --muted: #9aa1ab; --line: #2c3038;
+      --accent: #6b8cff; --accent-ink: #0d1020; --ok: #4cc38a; --ok-bg: #173325; --warn: #e6a740; --warn-bg: #3a2c12;
+      --bad: #ff7272; --bad-bg: #3d1a1a; --idle: #4a505a; --idle-bg: #23272e; --room: #20242b; --hl: #ffcf33;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+           padding: 14px 20px; background: var(--panel); border-bottom: 1px solid var(--line); }
+  header h1 { font-size: 18px; margin: 0; }
+  header .sub { color: var(--muted); font-size: 13px; }
+  .role { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+  .role button { border: 0; background: transparent; color: var(--ink); padding: 6px 12px; border-radius: 8px; cursor: pointer; font: inherit; }
+  .role button.on { background: var(--accent); color: var(--accent-ink); }
+  nav { display: flex; gap: 6px; padding: 10px 20px; overflow-x: auto; }
+  nav button { border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 7px 14px; border-radius: 999px; cursor: pointer; font: inherit; white-space: nowrap; }
+  nav button.on { background: var(--ink); color: var(--panel); border-color: var(--ink); }
+  main { padding: 6px 20px 40px; max-width: 1200px; margin: 0 auto; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-bottom: 14px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 14px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .stat .n { font-size: 28px; font-weight: 650; }
+  .stat .l { color: var(--muted); font-size: 13px; }
+  h2 { font-size: 16px; margin: 0 0 10px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); font-size: 14px; }
+  th { color: var(--muted); font-weight: 550; }
+  .tablewrap { overflow-x: auto; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .b-Recognized { background: var(--ok-bg); color: var(--ok); }
+  .b-Denied { background: var(--bad-bg); color: var(--bad); }
+  .b-Unknown, .b-Spoof { background: var(--warn-bg); color: var(--warn); }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  input, select { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+  .btn { font: inherit; border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+  .muted { color: var(--muted); }
+  .err { background: var(--bad-bg); color: var(--bad); padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; }
+  /* Map */
+  .maplayout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 14px; }
+  @media (max-width: 860px) { .maplayout { grid-template-columns: 1fr; } }
+  .floors { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .floors button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  .floors button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .grid { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; }
+  .room { aspect-ratio: 1.3; border: 1px solid var(--line); background: var(--room); border-radius: 6px; font-size: 11px;
+          display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; color: var(--muted); }
+  .room.cam { color: var(--ink); font-weight: 600; }
+  .room.active { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+  .room.empty { background: var(--idle-bg); border-color: var(--idle); }
+  .room .c { font-size: 10px; font-weight: 500; }
+  .room.hl { outline: 3px solid var(--hl); outline-offset: 1px; z-index: 1; }
+  .wing { display: flex; justify-content: space-between; color: var(--muted); font-size: 12px; margin: 6px 2px 0; }
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-top: 10px; }
+  .legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; border: 1px solid var(--line); }
+  .lg-active::before { background: var(--ok-bg) !important; border-color: var(--ok) !important; }
+  .lg-empty::before { background: var(--idle-bg) !important; border-color: var(--idle) !important; }
+  .lg-none::before { background: var(--room) !important; }
+  .side h3 { margin: 0 0 6px; font-size: 16px; }
+  .side ul { padding-left: 18px; margin: 6px 0; }
+  .side li { margin: 3px 0; font-size: 14px; }
+  .directions ol { padding-left: 20px; margin: 8px 0 0; }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Smart Campus · Biometrics</h1>
+    <div class="sub">Building G · Face recognition attendance</div>
+  </div>
+  <div class="role" id="sessionRole">Checking session…</div>
+</header>
+<div id="sessionMessage" class="card" role="status">Checking university session…</div>
+<nav id="nav" class="hidden"></nav>
+<main class="hidden" id="dashboard">
+  <div id="error" class="err hidden"></div>
+
+  <section id="tab-overview">
+    <div class="stats" id="stats"></div>
+    <div class="card">
+      <h2>Latest activity</h2>
+      <div class="tablewrap"><table id="latest"></table></div>
+    </div>
+  </section>
+
+  <section id="tab-map" class="hidden">
+    <div class="card">
+      <div class="filters">
+        <input id="roomSearch" placeholder="Find a room, e.g. 345" inputmode="numeric" maxlength="4">
+        <button class="btn" id="roomGo">Show me</button>
+      </div>
+      <p class="muted">Illustrative room layout and directions; not a verified building floor plan.</p>
+      <div class="maplayout">
+        <div>
+          <div class="floors" id="floors"></div>
+          <div class="grid" id="grid"></div>
+          <div class="wing"><span>← Left wing (00–49)</span><span>Right wing (50–99) →</span></div>
+          <div class="legend admin-only">
+            <span class="lg-active">People present today</span>
+            <span class="lg-empty">Camera, no one today</span>
+            <span class="lg-none">No camera</span>
+          </div>
+        </div>
+        <div class="side card" id="side" style="margin:0">
+          <p class="muted">Search for a room or tap one on the map.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-attendance" class="hidden">
+    <div class="card">
+      <div class="filters">
+        <input type="date" id="fDate">
+        <select id="fCamera"><option value="">All cameras</option></select>
+        <select id="fResult">
+          <option value="">All results</option><option>Recognized</option><option>Denied</option><option>Unknown</option><option>Spoof</option>
+        </select>
+        <button class="btn" id="fGo">Apply</button>
+      </div>
+      <div class="tablewrap"><table id="attTable"></table></div>
+    </div>
+  </section>
+
+  <section id="tab-people" class="hidden">
+    <div class="card">
+      <div class="filters">
+        <input id="pSearch" placeholder="Search name or ID">
+        <select id="pType"><option value="">All types</option><option>Student</option><option>Staff</option><option>Visitor</option></select>
+        <button class="btn" id="pGo">Search</button>
+      </div>
+      <div class="tablewrap"><table id="peopleTable"></table></div>
+    </div>
+  </section>
+
+  <section id="tab-alerts" class="hidden">
+    <div class="card">
+      <div class="filters">
+        <select id="aResolved"><option value="false">Open alerts</option><option value="true">Resolved</option><option value="">All</option></select>
+        <button class="btn" id="aGo">Refresh</button>
+      </div>
+      <div class="tablewrap"><table id="alertsTable"></table></div>
+    </div>
+  </section>
+
+  <section id="tab-vehicles" class="hidden">
+    <div class="card">
+      <p class="muted" style="margin-top:0">Cars from the parking system, matched to the biometrics person with the same University ID.</p>
+      <div class="filters">
+        <input id="vSearch" placeholder="Search plate, name or ID">
+        <button class="btn" id="vGo">Search</button>
+      </div>
+      <div class="tablewrap"><table id="vehTable"></table></div>
+    </div>
+  </section>
+
+  <section id="tab-cameras" class="hidden">
+    <div class="card">
+      <div class="tablewrap"><table id="camTable"></table></div>
+    </div>
+  </section>
+</main>
+
+<script>
+// All API requests stay on the dashboard origin.
+const PERSON_TYPES = ["Student", "Staff", "Visitor"];
+const RESULTS = ["Recognized", "Unknown", "Spoof", "Denied"];
+const ALERT_TYPES = ["UnknownFace", "SpoofAttempt", "AccessDenied", "ExpiredVisitor"];
+const ALERT_LABEL = { UnknownFace: "Unknown face", SpoofAttempt: "Spoof attempt", AccessDenied: "Access denied", ExpiredVisitor: "Expired visitor" };
+const TABS = { admin: ["overview", "map", "attendance", "people", "vehicles", "alerts", "cameras"], student: ["map"] };
+const TAB_LABEL = { overview: "Overview", map: "Building map", attendance: "Attendance", people: "People", vehicles: "Vehicles", alerts: "Alerts", cameras: "Cameras" };
+
+let role = null, tab = null, floor = 3, cameras = [], roomStats = {}, highlighted = null;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const enumName = (v, list) => (typeof v === "number" ? list[v] : v);
+const todayCairo = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Cairo" }).format(new Date());
+const asDate = (s) => new Date(/Z|[+-]\d\d:\d\d$/.test(s) ? s : s + "Z");
+const fmtTime = (s) => asDate(s).toLocaleString("en-GB", { timeZone: "Africa/Cairo", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+const badge = (r) => `<span class="badge b-${esc(r)}">${esc(r)}</span>`;
+
+async function get(path) {
+  const r = await fetch(path, { credentials: "same-origin", cache: "no-store" });
+  if (r.status === 401 || r.status === 403) lockDashboard("Your session or permissions no longer allow access. Return to the university portal and sign in again.");
+  if (!r.ok) throw new Error(`${path} → ${r.status}`);
+  return r.status === 204 ? null : r.json();
+}
+function showError(e) { $("error").textContent = "Could not load data: " + e.message + ". Is the backend running?"; $("error").classList.remove("hidden"); }
+function clearError() { $("error").classList.add("hidden"); }
+function parseRoom(loc) { const m = /^G-(\d)(\d{2})$/.exec(loc || ""); return m ? { floor: +m[1], room: m[1] + m[2] } : null; }
+
+// ---------- navigation ----------
+function renderNav() {
+  $("nav").innerHTML = TABS[role].map((t) => `<button data-tab="${t}" class="${t === tab ? "on" : ""}">${TAB_LABEL[t]}</button>`).join("");
+  $("nav").classList.toggle("hidden", TABS[role].length < 2);
+  document.querySelectorAll("main > section").forEach((s) => s.classList.toggle("hidden", s.id !== "tab-" + tab));
+  document.querySelectorAll(".admin-only").forEach((el) => el.classList.toggle("hidden", role !== "admin"));
+}
+$("nav").addEventListener("click", (e) => { const t = e.target.dataset.tab; if (role && TABS[role].includes(t)) { tab = t; renderNav(); load(); } });
+function lockDashboard(message) {
+  role = null;
+  $("dashboard").classList.add("hidden");
+  $("nav").classList.add("hidden");
+  $("sessionRole").textContent = "Not authorized";
+  $("sessionMessage").textContent = message;
+  $("sessionMessage").classList.remove("hidden");
+}
+
+async function initialize() {
+  try {
+    const user = await get("/api/auth/me");
+    if (!Array.isArray(user?.roles)) throw new Error("Invalid session response");
+    role = user.roles.includes("Admin") ? "admin" : "student";
+    tab = TABS[role][0];
+    $("sessionRole").textContent = role === "admin" ? "Administrator" : "University user · Map only";
+    $("sessionMessage").classList.add("hidden");
+    $("dashboard").classList.remove("hidden");
+    renderNav();
+    await load();
+  } catch (e) {
+    lockDashboard("Unable to verify your university session. Sign in through the university portal and reopen this page.");
+  }
+}
+
+// ---------- data ----------
+async function loadCameras() { cameras = (await get("/api/cameras")) || []; }
+
+async function load() {
+  if (!role) return;
+  clearError();
+  try {
+    if (role === "admin") await loadCameras();
+    else cameras = [];
+    if (!role) return;
+    if (tab === "overview") await loadOverview();
+    if (tab === "map") await loadMap();
+    if (tab === "attendance") await loadAttendance();
+    if (tab === "people") await loadPeople();
+    if (tab === "alerts") await loadAlerts();
+    if (tab === "vehicles") await loadVehicles();
+    if (tab === "cameras") renderCameras();
+  } catch (e) { showError(e); }
+}
+
+async function loadOverview() {
+  const [people, today, alertCount] = await Promise.all([
+    get("/api/persons"), get(`/api/attendance?date=${todayCairo()}`), get("/api/alerts/unresolved-count"),
+  ]);
+  const byType = (t) => people.filter((p) => enumName(p.type, PERSON_TYPES) === t).length;
+  const present = new Set(today.filter((a) => enumName(a.result, RESULTS) === "Recognized").map((a) => a.personId)).size;
+  const stats = [
+    [people.length, "People enrolled"], [byType("Student"), "Students"], [byType("Staff"), "Staff"],
+    [present + (today.length >= 200 ? "+" : ""), "Present today"], [alertCount, "Open alerts"],
+  ];
+  $("stats").innerHTML = stats.map(([n, l]) => `<div class="stat"><div class="n">${esc(n)}</div><div class="l">${l}</div></div>`).join("");
+  $("latest").innerHTML = attRows(today.slice(0, 12));
+}
+
+function attRows(logs) {
+  if (!logs.length) return `<tr><td class="muted">No records.</td></tr>`;
+  return `<tr><th>Time</th><th>Person</th><th>Type</th><th>Where</th><th>Result</th><th>Confidence</th></tr>` +
+    logs.map((a) => `<tr><td>${fmtTime(a.timestamp)}</td><td>${esc(a.personName || "—")}</td><td>${esc(enumName(a.personType, PERSON_TYPES) || "")}</td>
+      <td>${esc(a.cameraName)} <span class="muted">${esc(a.location)}</span></td><td>${badge(enumName(a.result, RESULTS))}</td>
+      <td>${Math.round((a.confidence || 0) * 100)}%</td></tr>`).join("");
+}
+
+async function loadAttendance() {
+  if (!$("fDate").value) $("fDate").value = todayCairo();
+  if ($("fCamera").options.length === 1)
+    $("fCamera").innerHTML += cameras.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  const q = new URLSearchParams();
+  if ($("fDate").value) q.set("date", $("fDate").value);
+  if ($("fCamera").value) q.set("cameraId", $("fCamera").value);
+  if ($("fResult").value) q.set("result", $("fResult").value);
+  $("attTable").innerHTML = attRows(await get("/api/attendance?" + q));
+}
+$("fGo").onclick = () => load();
+
+async function loadPeople() {
+  const q = new URLSearchParams();
+  if ($("pSearch").value.trim()) q.set("search", $("pSearch").value.trim());
+  if ($("pType").value) q.set("type", $("pType").value);
+  const people = await get("/api/persons?" + q);
+  $("peopleTable").innerHTML = people.length
+    ? `<tr><th>ID</th><th>Name</th><th>Type</th><th>Department</th><th>Faces</th><th>Status</th></tr>` +
+      people.map((p) => `<tr><td>${esc(p.universityId)}</td><td>${esc(p.fullName)}</td><td>${esc(enumName(p.type, PERSON_TYPES))}</td>
+        <td>${esc(p.department || "—")}</td><td>${p.faceCount ?? 0}</td><td>${p.isActive ? "Active" : "Inactive"}</td></tr>`).join("")
+    : `<tr><td class="muted">No people found.</td></tr>`;
+}
+$("pGo").onclick = () => load();
+
+async function loadAlerts() {
+  const v = $("aResolved").value;
+  const alerts = await get("/api/alerts" + (v === "" ? "" : `?resolved=${v}`));
+  $("alertsTable").innerHTML = alerts.length
+    ? `<tr><th>Time</th><th>Type</th><th>Message</th><th>Camera</th><th></th></tr>` +
+      alerts.map((a) => `<tr><td>${fmtTime(a.createdAt)}</td><td>${badge(ALERT_LABEL[enumName(a.type, ALERT_TYPES)] || a.type).replace(/b-[^"]+/, "b-Denied")}</td>
+        <td>${esc(a.message)}</td><td>${esc(a.cameraName)}</td>
+        <td>${a.isResolved ? '<span class="muted">Resolved</span>' : `<button class="btn" data-resolve="${a.id}">Resolve</button>`}</td></tr>`).join("")
+    : `<tr><td class="muted">No alerts.</td></tr>`;
+}
+$("aGo").onclick = () => load();
+$("alertsTable").addEventListener("click", async (e) => {
+  const id = e.target.dataset.resolve; if (!id) return;
+  if (role !== "admin") return;
+  try {
+    const csrf = await get("/api/auth/csrf");
+    if (!csrf?.requestToken) throw new Error("Missing request token");
+    const r = await fetch(`/api/alerts/${encodeURIComponent(id)}/resolve`, {
+      method: "PUT", credentials: "same-origin", cache: "no-store",
+      headers: { "X-CSRF-TOKEN": csrf.requestToken }
+    });
+    if (r.status === 401 || r.status === 403) lockDashboard("Your session or permissions no longer allow access.");
+    if (!r.ok) throw new Error("resolve → " + r.status);
+    await load();
+  }
+  catch (err) { showError(err); }
+});
+
+async function loadVehicles() {
+  const q = $("vSearch").value.trim();
+  const list = await get("/api/integration/vehicles" + (q ? "?search=" + encodeURIComponent(q) : ""));
+  $("vehTable").innerHTML = list.length
+    ? `<tr><th>Plate</th><th>Owner</th><th>University ID</th><th>Type</th><th>Faces enrolled</th><th>Linked</th><th>Approved</th></tr>` +
+      list.map((v) => `<tr><td dir="auto"><b>${esc(v.plateNumber)}</b></td><td>${esc(v.ownerName)}</td><td>${esc(v.ownerUniversityId)}</td>
+        <td>${esc(v.personType || "—")}</td><td>${v.faceCount}</td>
+        <td>${v.linkedToBiometrics ? '<span class="badge b-Recognized">Face ↔ Car</span>' : '<span class="badge b-Unknown">No face</span>'}</td>
+        <td>${v.isApproved ? "Yes" : "Pending"}</td></tr>`).join("")
+    : `<tr><td class="muted">No vehicles found.</td></tr>`;
+}
+$("vGo").onclick = () => load();
+
+function renderCameras() {
+  $("camTable").innerHTML = `<tr><th>Name</th><th>Location</th><th>Floor</th><th>Status</th></tr>` +
+    cameras.map((c) => { const r = parseRoom(c.location); return `<tr><td>${esc(c.name)}</td><td>${esc(c.location)}</td>
+      <td>${r ? r.floor : "—"}</td><td>${c.isActive ? "Active" : "Inactive"}</td></tr>`; }).join("");
+}
+
+// ---------- map ----------
+async function loadMap() {
+  roomStats = {};
+  const roomCams = cameras.map((c) => ({ ...c, r: parseRoom(c.location) })).filter((c) => c.r);
+  roomCams.forEach((c) => (roomStats[c.r.room] = { camera: c, logs: [] }));
+  if (role === "admin") {
+    const date = todayCairo();
+    const results = await Promise.all(roomCams.map((c) => get(`/api/attendance?date=${date}&cameraId=${c.id}`)));
+    roomCams.forEach((c, i) => (roomStats[c.r.room].logs = results[i] || []));
+  }
+  renderMap();
+}
+
+function renderMap() {
+  $("floors").innerHTML = [0, 1, 2, 3, 4].map((f) => `<button data-floor="${f}" class="${f === floor ? "on" : ""}">Floor ${f}</button>`).join("");
+  let html = "";
+  for (let i = 0; i < 100; i++) {
+    const room = `${floor}${String(i).padStart(2, "0")}`;
+    const st = roomStats[room];
+    let cls = "room", extra = "";
+    if (st) {
+      cls += " cam";
+      if (role === "admin") {
+        const people = new Set(st.logs.filter((l) => enumName(l.result, RESULTS) === "Recognized").map((l) => l.personId)).size;
+        cls += people ? " active" : " empty";
+        extra = `<span class="c">${people ? people + " 👤" : "📷"}</span>`;
+      }
+    }
+    if (highlighted === room) cls += " hl";
+    html += `<div class="${cls}" data-room="${room}" title="G-${room}">${room}${extra}</div>`;
+  }
+  $("grid").innerHTML = html;
+}
+
+$("floors").addEventListener("click", (e) => { const f = e.target.dataset.floor; if (f !== undefined) { floor = +f; renderMap(); } });
+$("grid").addEventListener("click", (e) => { const el = e.target.closest(".room"); if (el) selectRoom(el.dataset.room); });
+$("roomGo").onclick = () => findRoom();
+$("roomSearch").addEventListener("keydown", (e) => { if (e.key === "Enter") findRoom(); });
+
+function findRoom() {
+  const v = $("roomSearch").value.replace(/\D/g, "").padStart(3, "0");
+  if (!/^[0-4]\d{2}$/.test(v)) { $("side").innerHTML = `<p class="err">Room numbers go from 000 to 499.</p>`; return; }
+  floor = +v[0]; selectRoom(v);
+}
+
+function selectRoom(room) {
+  highlighted = room; renderMap();
+  const f = +room[0], n = +room.slice(1);
+  const wing = n < 50 ? "left" : "right";
+  const door = (n % 50) + 1;
+  const steps = [
+    "Enter Building G through the main entrance.",
+    f === 0 ? "Stay on the ground floor (Floor 0)." : `Take the stairs or elevator to Floor ${f}.`,
+    `Go to the ${wing} wing.`,
+    `Room G-${room} is door number ${door} along the ${wing} corridor.`,
+  ];
+  let html = `<h3>Room G-${room}</h3><div class="muted">Floor ${f} · ${wing} wing</div>
+    <div class="directions"><ol>${steps.map((s) => `<li>${s}</li>`).join("")}</ol></div>`;
+  const st = roomStats[room];
+  if (role === "admin") {
+    if (!st) html += `<p class="muted">No camera in this room.</p>`;
+    else {
+      const seen = new Map();
+      st.logs.filter((l) => enumName(l.result, RESULTS) === "Recognized").forEach((l) => { if (!seen.has(l.personId)) seen.set(l.personId, l); });
+      const other = st.logs.filter((l) => enumName(l.result, RESULTS) !== "Recognized");
+      html += `<h3 style="margin-top:14px">Today: ${seen.size} present</h3>`;
+      html += seen.size ? `<ul>${[...seen.values()].map((l) => `<li>${esc(l.personName)} <span class="muted">${fmtTime(l.timestamp)}</span></li>`).join("")}</ul>` : `<p class="muted">No one recognized here today.</p>`;
+      if (other.length) html += `<p>${other.length} flagged event(s): ${other.map((l) => badge(enumName(l.result, RESULTS))).join(" ")}</p>`;
+    }
+  }
+  $("side").innerHTML = html;
+}
+
+window.addEventListener("pageshow", (event) => { if (event.persisted) location.reload(); });
+initialize();
+</script>
+</body>
+</html>

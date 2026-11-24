@@ -1,0 +1,44 @@
+
+# Python environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Local credentials
+.env
+.env.*
+!.env.example
+secrets.json
+
+# Datasets and images
+dataset/
+datasets/
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.bmp
+
+# Generated mappings and results
+people_mapping*.csv
+unregistered_plates*.csv
+ocr_review*.csv
+output/
+outputs/
+logs/
+
+# AI models and weights
+models/
+weights/
+.insightface/
+*.onnx
+*.pth
+*.pt
+*.pkl
+*.npz
+*.npy
+
+# Temporary files
+*.bak
+*.tmp
