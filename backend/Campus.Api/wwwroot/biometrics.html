@@ -74,6 +74,24 @@
   .side li { margin: 3px 0; font-size: 14px; }
   .directions ol { padding-left: 20px; margin: 8px 0 0; }
   .hidden { display: none !important; }
+  /* Live view */
+  .live-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .live-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--bad); margin-right: 8px; animation: pulse 1.4s infinite; }
+  .live-dot.paused { background: var(--idle); animation: none; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  .live-hero { display: flex; align-items: center; gap: 18px; padding: 18px; border-radius: 14px; border: 1px solid var(--line); background: var(--bg); margin-bottom: 14px; }
+  .live-hero .who { font-size: 22px; font-weight: 650; }
+  .live-hero .meta { color: var(--muted); font-size: 14px; }
+  .live-hero.ok { border-color: var(--ok); background: var(--ok-bg); }
+  .live-hero.bad { border-color: var(--bad); background: var(--bad-bg); }
+  .live-hero.warn { border-color: var(--warn); background: var(--warn-bg); }
+  .live-hero .icon { font-size: 34px; }
+  .live-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 14px; }
+  @media (max-width: 860px) { .live-grid { grid-template-columns: 1fr; } }
+  tr.flash td { animation: flash 2.5s ease-out; }
+  @keyframes flash { from { background: var(--hl); } to { background: transparent; } }
+  .live-alert { padding: 10px 12px; border-radius: 10px; background: var(--bad-bg); color: var(--ink); margin-bottom: 8px; font-size: 14px; }
+  .live-alert .t { color: var(--muted); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -94,6 +112,30 @@
     <div class="card">
       <h2>Latest activity</h2>
       <div class="tablewrap"><table id="latest"></table></div>
+    </div>
+  </section>
+
+  <section id="tab-live" class="hidden">
+    <div class="card">
+      <div class="live-head">
+        <h2 style="margin:0"><span class="live-dot" id="liveDot"></span>Live recognition</h2>
+        <div class="filters" style="margin:0">
+          <select id="liveCamera"><option value="">All cameras</option></select>
+          <button class="btn" id="livePause">Pause</button>
+        </div>
+      </div>
+      <div class="live-hero" id="liveHero"><span class="icon">📷</span><div><div class="who">Waiting for the camera…</div><div class="meta">New recognitions appear here within a few seconds.</div></div></div>
+      <div class="live-grid">
+        <div>
+          <h2>Today's events</h2>
+          <div class="tablewrap"><table id="liveTable"></table></div>
+        </div>
+        <div>
+          <h2>Open alerts</h2>
+          <div id="liveAlerts"></div>
+        </div>
+      </div>
+      <p class="muted" id="liveUpdated" style="margin-bottom:0"></p>
     </div>
   </section>
 
@@ -181,8 +223,8 @@ const PERSON_TYPES = ["Student", "Staff", "Visitor"];
 const RESULTS = ["Recognized", "Unknown", "Spoof", "Denied"];
 const ALERT_TYPES = ["UnknownFace", "SpoofAttempt", "AccessDenied", "ExpiredVisitor"];
 const ALERT_LABEL = { UnknownFace: "Unknown face", SpoofAttempt: "Spoof attempt", AccessDenied: "Access denied", ExpiredVisitor: "Expired visitor" };
-const TABS = { admin: ["overview", "map", "attendance", "people", "vehicles", "alerts", "cameras"], student: ["map"] };
-const TAB_LABEL = { overview: "Overview", map: "Building map", attendance: "Attendance", people: "People", vehicles: "Vehicles", alerts: "Alerts", cameras: "Cameras" };
+const TABS = { admin: ["overview", "live", "map", "attendance", "people", "vehicles", "alerts", "cameras"], student: ["map"] };
+const TAB_LABEL = { overview: "Overview", live: "Live", map: "Building map", attendance: "Attendance", people: "People", vehicles: "Vehicles", alerts: "Alerts", cameras: "Cameras" };
 
 let role = null, tab = null, floor = 3, cameras = [], roomStats = {}, highlighted = null;
 
@@ -254,6 +296,7 @@ async function load() {
     if (tab === "alerts") await loadAlerts();
     if (tab === "vehicles") await loadVehicles();
     if (tab === "cameras") renderCameras();
+    if (tab === "live") startLive(); else stopLive();
   } catch (e) { showError(e); }
 }
 
@@ -425,6 +468,65 @@ function selectRoom(room) {
 }
 
 window.addEventListener("pageshow", (event) => { if (event.persisted) location.reload(); });
+// ---------- live view ----------
+const LIVE_INTERVAL_MS = 3000;
+let liveTimer = null, livePaused = false, liveSeen = null, liveBusy = false;
+
+function startLive() {
+  if ($("liveCamera").options.length === 1)
+    $("liveCamera").innerHTML += cameras.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
+  if (!liveTimer) { liveSeen = null; liveTick(); liveTimer = setInterval(liveTick, LIVE_INTERVAL_MS); }
+}
+function stopLive() { if (liveTimer) { clearInterval(liveTimer); liveTimer = null; } }
+
+function heroFor(a) {
+  const r = enumName(a.result, RESULTS);
+  const cls = r === "Recognized" ? "ok" : r === "Unknown" ? "warn" : "bad";
+  const icon = r === "Recognized" ? "✅" : r === "Unknown" ? "❓" : r === "Spoof" ? "🛑" : "⛔";
+  const who = a.personName || (r === "Spoof" ? "Spoof attempt" : "Unknown person");
+  return `<div class="live-hero ${cls}"><span class="icon">${icon}</span><div>
+    <div class="who">${esc(who)} ${badge(r)}</div>
+    <div class="meta">${esc(a.cameraName)} · ${esc(a.location)} · ${fmtTime(a.timestamp)} · ${Math.round((a.confidence || 0) * 100)}% confidence</div>
+  </div></div>`;
+}
+
+async function liveTick() {
+  if (livePaused || liveBusy || tab !== "live" || !role || document.hidden) return;
+  liveBusy = true;
+  try {
+    const q = new URLSearchParams({ date: todayCairo() });
+    if ($("liveCamera").value) q.set("cameraId", $("liveCamera").value);
+    const [logs, alerts] = await Promise.all([get("/api/attendance?" + q), get("/api/alerts?resolved=false")]);
+    if (tab !== "live") return;
+    const fresh = liveSeen ? new Set(logs.filter((a) => !liveSeen.has(a.id)).map((a) => a.id)) : new Set();
+    liveSeen = new Set(logs.map((a) => a.id));
+
+    if (logs.length && (fresh.size || $("liveHero").dataset.id !== String(logs[0].id))) {
+      $("liveHero").outerHTML = heroFor(logs[0]).replace('class="live-hero', `id="liveHero" data-id="${logs[0].id}" class="live-hero`);
+    }
+    const rows = logs.slice(0, 15);
+    $("liveTable").innerHTML = rows.length
+      ? `<tr><th>Time</th><th>Person</th><th>Where</th><th>Result</th></tr>` +
+        rows.map((a) => `<tr class="${fresh.has(a.id) ? "flash" : ""}"><td>${fmtTime(a.timestamp)}</td><td>${esc(a.personName || "—")}</td>
+          <td>${esc(a.cameraName)}</td><td>${badge(enumName(a.result, RESULTS))}</td></tr>`).join("")
+      : `<tr><td class="muted">No events today yet.</td></tr>`;
+    $("liveAlerts").innerHTML = alerts.length
+      ? alerts.slice(0, 6).map((a) => `<div class="live-alert">${esc(a.message)}<div class="t">${fmtTime(a.createdAt)} · ${esc(a.cameraName)}</div></div>`).join("")
+      : `<p class="muted">No open alerts.</p>`;
+    $("liveUpdated").textContent = "Updated " + new Date().toLocaleTimeString("en-GB", { timeZone: "Africa/Cairo" }) + " · refreshes every 3 seconds";
+    clearError();
+  } catch (e) { showError(e); }
+  finally { liveBusy = false; }
+}
+
+$("livePause").onclick = () => {
+  livePaused = !livePaused;
+  $("livePause").textContent = livePaused ? "Resume" : "Pause";
+  $("liveDot").classList.toggle("paused", livePaused);
+  if (!livePaused) liveTick();
+};
+$("liveCamera").onchange = () => { liveSeen = null; liveTick(); };
+
 initialize();
 </script>
 </body>
