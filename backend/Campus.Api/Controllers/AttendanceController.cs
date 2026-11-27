@@ -1,4 +1,3 @@
-
 using Campus.Api.Data;
 using Campus.Api.Dtos;
 using Campus.Api.Models;
@@ -238,28 +237,38 @@ public class AttendanceController : ControllerBase
     {
         if (person is not null)
         {
+            // Only events within ±PersonCooldownMinutes of this one count as duplicates,
+            // so importing older (historical) events is not blocked by newer ones.
             var cutoff = timestamp.AddMinutes(
                 -PersonCooldownMinutes);
+            var upper = timestamp.AddMinutes(
+                PersonCooldownMinutes);
 
             return await _db.AttendanceLogs
                 .Where(a =>
                     a.PersonId == person.Id &&
                     a.CameraId == cameraId &&
-                    a.Timestamp >= cutoff)
+                    a.Timestamp >= cutoff &&
+                    a.Timestamp <= upper)
                 .OrderByDescending(a => a.Timestamp)
                 .FirstOrDefaultAsync();
         }
         else
         {
+            // Only events within ±UnknownCooldownMinutes of this one count as duplicates,
+            // so importing older (historical) events is not blocked by newer ones.
             var cutoff = timestamp.AddMinutes(
                 -UnknownCooldownMinutes);
+            var upper = timestamp.AddMinutes(
+                UnknownCooldownMinutes);
 
             return await _db.AttendanceLogs
                 .Where(a =>
                     a.PersonId == null &&
                     a.CameraId == cameraId &&
                     a.Result == result &&
-                    a.Timestamp >= cutoff)
+                    a.Timestamp >= cutoff &&
+                    a.Timestamp <= upper)
                 .OrderByDescending(a => a.Timestamp)
                 .FirstOrDefaultAsync();
         }
