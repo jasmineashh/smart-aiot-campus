@@ -66,7 +66,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--camera-id", type=int, required=True, help="backend Camera id this device represents")
     ap.add_argument("--camera", type=int, default=0, help="local webcam index")
-    ap.add_argument("--threshold", type=float, default=0.45)
+    ap.add_argument("--threshold", type=float, default=0.40)
     ap.add_argument("--every", type=int, default=2, help="process every Nth frame (lower = catches blinks better)")
     ap.add_argument("--liveness-threshold", type=float, default=0.6)
     ap.add_argument("--no-liveness", action="store_true", help="disable MiniFASNet check")
