@@ -1,4 +1,3 @@
-
 using Campus.Api.Models;
 using Campus.Api.Models.Identity;
 using Campus.Api.Models.Parking;
@@ -52,6 +51,7 @@ public class CampusDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<ParkingZone>(entity =>
         {
             entity.HasKey(z => z.Id);
+
             entity.HasIndex(z => z.Code).IsUnique();
 
             entity.Property(z => z.Code)
@@ -104,18 +104,61 @@ public class CampusDbContext : IdentityDbContext<ApplicationUser>
             entity.HasKey(v => v.Id);
 
             entity.Property(v => v.PlateNumber)
-                .HasMaxLength(30).IsRequired();
+                .HasMaxLength(30)
+                .IsRequired();
 
-            entity.Property(v => v.Make).HasMaxLength(80);
-            entity.Property(v => v.Model).HasMaxLength(80);
-            entity.Property(v => v.Color).HasMaxLength(50);
+            entity.Property(v => v.NormalizedPlateNumber)
+                .HasMaxLength(30);
+
+            entity.HasIndex(v => v.NormalizedPlateNumber)
+                .IsUnique()
+                .HasFilter("\"NormalizedPlateNumber\" IS NOT NULL");
+
+            entity.Property(v => v.Make)
+                .HasMaxLength(80);
+
+            entity.Property(v => v.Model)
+                .HasMaxLength(80);
+
+            entity.Property(v => v.Color)
+                .HasMaxLength(50);
+
+            entity.Property(v => v.ApprovalStatus)
+                .HasMaxLength(20)
+                .HasDefaultValue("Pending")
+                .IsRequired();
+
+            entity.Property(v => v.RejectionReason)
+                .HasMaxLength(500);
 
             entity.HasOne(v => v.Owner)
                 .WithMany()
                 .HasForeignKey(v => v.OwnerId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            entity.HasOne(v => v.ReviewedBy)
+                .WithMany()
+                .HasForeignKey(v => v.ReviewedById)
+                .OnDelete(DeleteBehavior.Restrict);
+
             entity.HasIndex(v => v.OwnerId);
+
+            entity.HasIndex(v => v.ApprovalStatus);
+
+            entity.HasIndex(v => v.ReviewedById);
+
+            entity.ToTable("Vehicles", table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_Vehicles_ApprovalStatus",
+                    "\"ApprovalStatus\" IN " +
+                    "('Pending', 'Approved', 'Rejected')");
+
+                table.HasCheckConstraint(
+                    "CK_Vehicles_ApprovalConsistency",
+                    "\"IsApproved\" = " +
+                    "(\"ApprovalStatus\" = 'Approved')");
+            });
         });
 
         // BIOMETRIC PERSONS
@@ -150,7 +193,7 @@ public class CampusDbContext : IdentityDbContext<ApplicationUser>
                 .HasMaxLength(100).IsRequired();
 
             entity.Property(c => c.Location)
-                .HasMaxLength(100);
+                .HasMaxLength(100).IsRequired();
         });
 
         // ATTENDANCE LOGS

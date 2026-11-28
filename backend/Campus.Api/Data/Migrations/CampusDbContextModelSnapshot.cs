@@ -349,6 +349,13 @@ namespace Campus.Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ApprovalStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Pending");
+
                     b.Property<string>("Color")
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
@@ -364,6 +371,10 @@ namespace Campus.Api.Data.Migrations
                         .HasMaxLength(80)
                         .HasColumnType("character varying(80)");
 
+                    b.Property<string>("NormalizedPlateNumber")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
                     b.Property<string>("OwnerId")
                         .IsRequired()
                         .HasColumnType("text");
@@ -376,11 +387,34 @@ namespace Campus.Api.Data.Migrations
                     b.Property<DateTime>("RegisteredAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReviewedById")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ApprovalStatus");
+
+                    b.HasIndex("NormalizedPlateNumber")
+                        .IsUnique()
+                        .HasFilter("\"NormalizedPlateNumber\" IS NOT NULL");
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Vehicles");
+                    b.HasIndex("ReviewedById");
+
+                    b.ToTable("Vehicles", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Vehicles_ApprovalConsistency", "\"IsApproved\" = (\"ApprovalStatus\" = 'Approved')");
+
+                            t.HasCheckConstraint("CK_Vehicles_ApprovalStatus", "\"ApprovalStatus\" IN ('Pending', 'Approved', 'Rejected')");
+                        });
                 });
 
             modelBuilder.Entity("Campus.Api.Models.Person", b =>
@@ -636,7 +670,14 @@ namespace Campus.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Campus.Api.Models.Identity.ApplicationUser", "ReviewedBy")
+                        .WithMany()
+                        .HasForeignKey("ReviewedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Owner");
+
+                    b.Navigation("ReviewedBy");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
