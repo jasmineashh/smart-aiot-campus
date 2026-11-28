@@ -1,11 +1,15 @@
+/* ==========================================
+   REGISTRATION PANEL
+   ========================================== */
 
 .vr-panel {
-  background: #fff;
+  background: #ffffff;
   border: 1px solid #e4eaf3;
   border-radius: 18px;
   padding: 28px;
   margin: 24px 0 30px;
-  box-shadow: 0 8px 24px rgba(21, 55, 105, 0.05);
+  box-shadow:
+    0 8px 24px rgba(21, 55, 105, 0.05);
 }
 
 .vr-heading {
@@ -13,129 +17,509 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 20px;
-  margin-bottom: 22px;
+  margin-bottom: 28px;
 }
 
 .vr-heading h2 {
-  margin: 8px 0;
-  font-size: 24px;
+  margin: 0 0 8px;
+  font-size: 25px;
+  font-weight: 800;
   color: #17233b;
 }
 
 .vr-heading p {
-  color: #7a879a;
+  margin: 0;
+  color: #78869b;
   font-size: 14px;
+  line-height: 1.6;
 }
 
 .vr-close {
-  border: none;
-  background: #f1f5fb;
-  border-radius: 9px;
+  flex-shrink: 0;
   width: 36px;
   height: 36px;
+  border: none;
+  background: #f1f5fb;
+  color: #34435b;
+  border-radius: 9px;
   font-size: 25px;
+  line-height: 1;
   cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.vr-notice {
-  background: #eff5ff;
-  border: 1px solid #dbe8ff;
-  color: #285b9c;
-  border-radius: 10px;
-  padding: 13px 16px;
-  font-size: 13px;
-  margin-bottom: 24px;
+.vr-close:hover:not(:disabled) {
+  background: #e3eaf5;
 }
+
+/* ==========================================
+   MAIN FORM LAYOUT
+   ========================================== */
 
 .vr-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
+
+.vr-registration-layout {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.35fr)
+    minmax(250px, 0.85fr);
+  align-items: start;
+  gap: 28px;
+}
+
+.vr-details-column {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  min-width: 0;
+}
+
+.vr-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.vr-form-section + .vr-form-section {
+  border-top: 1px solid #e9edf4;
+  padding-top: 24px;
+}
+
+.vr-form-section h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 750;
+  color: #17233b;
+}
+
+.vr-fields-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.vr-full-width {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================
+   FORM FIELDS
+   ========================================== */
 
 .vr-field {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
 }
 
 .vr-field label {
+  color: #25334b;
   font-size: 13px;
   font-weight: 700;
-  color: #25334b;
 }
 
-.vr-field input {
-  border: 1px solid #dae2ee;
-  background: #f9fbfe;
-  border-radius: 10px;
-  padding: 14px;
-  font-size: 15px;
-  color: #17233b;
+.vr-field input,
+.vr-field select {
   width: 100%;
+  min-width: 0;
+  min-height: 46px;
   box-sizing: border-box;
+  background: #f9fbfe;
+  border: 1px solid #dae2ee;
+  border-radius: 9px;
+  padding: 12px 13px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #17233b;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
-.vr-field input:focus {
+.vr-field select {
+  cursor: pointer;
+  text-overflow: ellipsis;
+}
+
+.vr-field input:focus,
+.vr-field select:focus {
   outline: 2px solid #1764d5;
   outline-offset: 1px;
+  background: #ffffff;
+}
+
+.vr-field input:disabled,
+.vr-field select:disabled {
+  background: #f1f4f8;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.vr-field input::placeholder {
+  color: #9aa8bb;
 }
 
 .vr-field small {
-  font-size: 12px;
   color: #8491a5;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
-.vr-error {
-  grid-column: 1 / -1;
-  color: #b42318;
-  background: #fff1f1;
-  padding: 12px;
-  border-radius: 9px;
+#vr-letters,
+#vr-numbers {
+  font-size: 20px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 2px;
+}
+
+/* ==========================================
+   COLOR SELECTION
+   ========================================== */
+
+.vr-color-swatches {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 2px;
+}
+
+.vr-color-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 29px;
+  height: 29px;
+  padding: 0;
+  border: 1px solid rgba(30, 41, 59, 0.25);
+  border-radius: 50%;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.vr-color-swatch:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 10px rgba(15, 23, 42, 0.15);
+}
+
+.vr-color-swatch.selected {
+  outline: 2px solid #1764d5;
+  outline-offset: 3px;
+}
+
+.vr-color-swatch:focus-visible {
+  outline: 3px solid #1764d5;
+  outline-offset: 3px;
+}
+
+.vr-color-swatch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.vr-color-check {
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #17233b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* ==========================================
+   LIVE PREVIEW COLUMN
+   ========================================== */
+
+.vr-preview-column {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
+}
+
+.vr-preview-section,
+.vr-vehicle-preview {
+  background: #f8faff;
+  border: 1px solid #e0e8f4;
+  border-radius: 14px;
+  padding: 20px;
+  min-width: 0;
+}
+
+.vr-preview-label {
+  display: block;
+  color: #526785;
+  font-size: 13px;
+  font-weight: 750;
+  margin-bottom: 16px;
+}
+
+/* ==========================================
+   EGYPTIAN LICENSE PLATE
+   ========================================== */
+
+.vr-preview-section .mv-plate {
+  width: 100%;
+  max-width: 310px;
+  margin: 0 auto;
+}
+
+.vr-preview-section .mv-plate-header {
+  padding: 8px 15px;
+  font-size: 12px;
+}
+
+.vr-plate-content {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    1px
+    minmax(0, 1fr);
+  align-items: center;
+  min-height: 67px;
+  padding: 10px;
+  direction: ltr;
+}
+
+.vr-plate-digits,
+.vr-plate-letters {
+  color: #101827;
+  font-size: clamp(17px, 2vw, 25px);
+  font-weight: 900;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.vr-plate-divider {
+  width: 1px;
+  height: 37px;
+  background: #b7c2d1;
+}
+
+.vr-plate-content .placeholder {
+  color: #9ca9bb;
+}
+
+/* ==========================================
+   VEHICLE ILLUSTRATION
+   ========================================== */
+
+.vr-vehicle-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.vr-vehicle-preview .vr-preview-label {
+  align-self: flex-start;
+}
+
+.vr-car-illustration {
+  display: block;
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  margin: 12px auto 20px;
+}
+
+.vr-car-illustration path {
+  transition: fill 0.25s ease;
+}
+
+.vr-vehicle-preview h3 {
+  margin: 0 0 6px;
+  color: #17233b;
+  font-size: 19px;
+  line-height: 1.4;
+  font-weight: 750;
+  overflow-wrap: anywhere;
+}
+
+.vr-vehicle-preview p {
+  margin: 0 0 8px;
+  color: #526785;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.vr-vehicle-preview small {
+  color: #8491a5;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+/* ==========================================
+   SUPPORT TEXT
+   ========================================== */
+
+.vr-help {
+  margin: 0;
+  color: #78869b;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+/* ==========================================
+   FORM FOOTER
+   ========================================== */
+
+.vr-form-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  padding-top: 22px;
+  border-top: 1px solid #e9edf4;
+}
+
+.vr-approval-note {
+  flex: 1;
+  min-width: 0;
+}
+
+.vr-approval-note strong {
+  color: #34435b;
+  font-size: 13px;
+}
+
+.vr-approval-note p {
+  margin: 5px 0 0;
+  color: #78869b;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .vr-actions {
-  grid-column: 1 / -1;
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 10px;
+  flex-shrink: 0;
+  gap: 10px;
 }
 
-.vr-actions button {
+.vr-actions button,
+.vr-error button {
   padding: 12px 20px;
-  border-radius: 10px;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .vr-cancel {
   border: 1px solid #dce3ee;
-  background: white;
+  background: #ffffff;
   color: #34435b;
 }
 
+.vr-cancel:hover:not(:disabled) {
+  background: #f1f5fb;
+}
+
 .vr-submit {
-  border: none;
+  border: 1px solid #1458bd;
   background: #1458bd;
-  color: white;
+  color: #ffffff;
 }
 
-.vr-preview {
-  background: #f2f8ff;
-  border: 1px solid #d7e8ff;
-  border-radius: 12px;
-  padding: 20px;
-  margin-top: 24px;
-  color: #25334b;
+.vr-submit:hover:not(:disabled) {
+  background: #104ca7;
 }
 
-.vr-preview h3 {
-  margin-top: 0;
+.vr-submit:disabled {
+  border-color: #a5bad7;
+  background: #a5bad7;
+  cursor: not-allowed;
 }
 
-.vr-preview small {
-  color: #66758b;
+.vr-close:disabled,
+.vr-cancel:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================
+   LOADING AND FEEDBACK
+   ========================================== */
+
+.vr-loading {
+  background: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+
+.vr-error {
+  color: #b42318;
+  background: #fff1f1;
+  border: 1px solid #f8d4d4;
+  padding: 14px;
+  border-radius: 9px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.vr-panel > .vr-error {
+  margin-bottom: 20px;
+}
+
+.vr-error p {
+  margin: 0 0 10px;
+}
+
+.vr-success {
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 15px 18px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ==========================================
+   RESPONSIVE LAYOUT
+   ========================================== */
+
+@media (max-width: 1100px) {
+  .vr-registration-layout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .vr-preview-column {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  .vr-form-footer {
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 700px) {
@@ -143,11 +527,58 @@
     padding: 18px;
   }
 
-  .vr-form {
+  .vr-heading {
+    margin-bottom: 22px;
+  }
+
+  .vr-heading h2 {
+    font-size: 22px;
+  }
+
+  .vr-fields-grid {
+    gap: 15px;
+  }
+
+  .vr-preview-column {
+    grid-template-columns: 1fr;
+  }
+
+  .vr-form-footer {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .vr-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+  }
+
+  .vr-actions button {
+    width: 100%;
+    padding: 12px 10px;
+  }
+
+  .vr-plate-digits,
+  .vr-plate-letters {
+    font-size: 23px;
+  }
+}
+
+@media (max-width: 420px) {
+  .vr-fields-grid {
     grid-template-columns: 1fr;
   }
 
   .vr-actions {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vr-panel *,
+  .vr-panel *::before,
+  .vr-panel *::after {
+    transition: none;
   }
 }

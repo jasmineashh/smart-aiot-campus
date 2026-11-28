@@ -1,8 +1,9 @@
-
 .mv-page {
   width: 100%;
   color: #17233b;
 }
+
+/* PAGE HEADER */
 
 .mv-header {
   display: flex;
@@ -32,24 +33,97 @@
   line-height: 1.6;
 }
 
-.mv-refresh {
+.mv-header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mv-refresh,
+.mv-register-btn {
   background: #1458bd;
   color: white;
   border: none;
   border-radius: 10px;
   padding: 12px 22px;
   cursor: pointer;
+  font-family: inherit;
   font-weight: 700;
+  transition: background 0.2s ease;
 }
 
-.mv-refresh:disabled {
+.mv-refresh:hover:not(:disabled),
+.mv-register-btn:hover:not(:disabled) {
+  background: #104ca7;
+}
+
+.mv-refresh:disabled,
+.mv-register-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
+/* SUCCESS NOTIFICATION */
+
+.mv-success {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  margin-bottom: 25px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 13px;
+  color: #166534;
+}
+
+.mv-success-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  background: #dcfce7;
+  border-radius: 50%;
+  color: #15803d;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.mv-success-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.mv-success-content strong {
+  display: block;
+  font-size: 15px;
+}
+
+.mv-success-content p {
+  margin: 5px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.mv-success-close {
+  border: none;
+  background: transparent;
+  color: #166534;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+/* VEHICLE STATISTICS */
+
 .mv-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(
+    4,
+    minmax(0, 1fr)
+  );
   gap: 18px;
   margin-bottom: 32px;
 }
@@ -83,6 +157,12 @@
   color: #d98a13;
 }
 
+.mv-red {
+  color: #c43e3e;
+}
+
+/* REGISTERED VEHICLES SECTION */
+
 .mv-section-title {
   margin-bottom: 20px;
 }
@@ -105,7 +185,11 @@
   gap: 20px;
 }
 
+/* VEHICLE CARD */
+
 .mv-card {
+  display: flex;
+  flex-direction: column;
   background: white;
   border: 1px solid #e6ebf3;
   border-radius: 18px;
@@ -134,6 +218,8 @@
   margin: 8px 0 0;
 }
 
+/* APPROVAL STATUS BADGES */
+
 .mv-badge {
   display: inline-flex;
   border-radius: 25px;
@@ -152,13 +238,22 @@
   color: #a96c0c;
 }
 
+.mv-badge.rejected {
+  background: #fee2e2;
+  color: #b42318;
+}
+
+/* EGYPTIAN LICENSE PLATE */
+
 .mv-plate {
+  width: calc(100% - 36px);
   max-width: 290px;
   margin: 16px auto 24px;
   border: 3px solid #233348;
   border-radius: 9px;
   overflow: hidden;
   background: white;
+  box-sizing: border-box;
   box-shadow: 0 4px 9px rgba(0, 0, 0, 0.08);
 }
 
@@ -185,10 +280,15 @@
   unicode-bidi: plaintext;
 }
 
+/* VEHICLE INFORMATION */
+
 .mv-details {
   padding: 20px 23px;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(
+    2,
+    minmax(0, 1fr)
+  );
   gap: 20px;
   border-top: 1px solid #edf0f5;
 }
@@ -198,7 +298,37 @@
   overflow-wrap: anywhere;
 }
 
+/* REJECTION REASON */
+
+.mv-rejection {
+  margin: 0 23px 20px;
+  padding: 13px 15px;
+  border: 1px solid #fecaca;
+  border-left: 3px solid #dc2626;
+  border-radius: 9px;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.mv-rejection strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 5px;
+}
+
+.mv-rejection p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+/* VEHICLE CARD FOOTER */
+
 .mv-card-footer {
+  margin-top: auto;
   background: #f7f9fd;
   padding: 15px 23px;
   font-size: 12px;
@@ -223,6 +353,12 @@
   background: #e5a12d;
 }
 
+.mv-dot.red {
+  background: #dc2626;
+}
+
+/* LOADING, EMPTY AND ERROR STATES */
+
 .mv-message {
   padding: 48px 24px;
   border: 1px solid #e6ebf3;
@@ -244,6 +380,11 @@
   cursor: pointer;
   margin-top: 8px;
   padding: 9px 18px;
+  border: 1px solid #dce3ee;
+  border-radius: 8px;
+  background: white;
+  color: #34435b;
+  font-weight: 600;
 }
 
 .mv-empty-icon {
@@ -259,13 +400,32 @@
   margin: 0 auto 15px;
 }
 
+/* RESPONSIVE LAYOUT */
+
+@media (max-width: 1100px) {
+  .mv-stats {
+    grid-template-columns: repeat(
+      2,
+      minmax(0, 1fr)
+    );
+  }
+}
+
 @media (max-width: 700px) {
   .mv-header {
     flex-direction: column;
   }
 
+  .mv-header-actions {
+    width: 100%;
+  }
+
   .mv-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(
+      2,
+      minmax(0, 1fr)
+    );
+    gap: 12px;
   }
 
   .mv-stat {
@@ -275,25 +435,32 @@
   .mv-stat strong {
     font-size: 24px;
   }
-}
-.mv-header-actions {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
+
+  .mv-success {
+    padding: 15px;
+    gap: 10px;
+  }
+
+  .mv-card-top {
+    padding: 18px;
+  }
+
+  .mv-details {
+    padding: 18px;
+    gap: 15px;
+  }
 }
 
-.mv-register-btn {
-  background: #1458bd;
-  border: none;
-  border-radius: 10px;
-  color: white;
-  padding: 12px 22px;
-  font-weight: 700;
-  cursor: pointer;
+@media (max-width: 380px) {
+  .mv-stats {
+    grid-template-columns: 1fr;
+  }
 }
 
-@media (max-width: 700px) {
-  .mv-header-actions {
-    width: 100%;
+@media (prefers-reduced-motion: reduce) {
+  .mv-page *,
+  .mv-page *::before,
+  .mv-page *::after {
+    transition: none;
   }
 }

@@ -31,8 +31,19 @@ public static class ParkingEndpoints
         {
             return Results.Ok(new
             {
-                Brands = VehicleCatalogService.GetBrands(),
-                Colors = VehicleCatalogService.GetColors()
+                Brands =
+                    VehicleCatalogService.GetBrands(),
+
+                Colors =
+                    VehicleCatalogService.GetColors(),
+
+                BodyTypes =
+                    VehicleBodyTypeService
+                        .GetSupportedBodyTypes(),
+
+                ModelBodyTypes =
+                    VehicleBodyTypeService
+                        .GetModelBodyTypes()
             });
         });
 
@@ -195,7 +206,7 @@ public static class ParkingEndpoints
                 });
             }
 
-            // 6. Validate against the central vehicle catalog.
+            // 6. Validate against the central catalog.
 
             bool validVehicle =
                 VehicleCatalogService.TryValidateVehicle(
