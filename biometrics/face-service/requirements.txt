@@ -1,0 +1,22 @@
+# Smart Campus face service (biometrics/face-service)
+# Python 3.11 is required (insightface / onnxruntime / torch wheels).
+#
+# Install with:  ./setup_env.sh      (handles the OpenCV conflict below)
+# Exact tested versions are frozen in requirements-lock.txt.
+
+# --- Face detection + recognition (ArcFace, buffalo_l model) ---
+insightface>=0.7.3
+onnxruntime>=1.17
+numpy>=2.0
+
+# --- Camera / image processing (GUI build: needed for camera windows) ---
+opencv-python>=4.9
+
+# --- Anti-spoofing (MiniFASNet from third_party/Silent-Face-Anti-Spoofing) ---
+torch>=2.2
+
+# --- Arabic licence plate OCR ---
+easyocr>=1.7
+
+# --- Backend API client ---
+requests>=2.31

@@ -42,3 +42,7 @@ weights/
 # Temporary files
 *.bak
 *.tmp
+
+ocr_review_results.csv
+ocr_review_results.backup.csv
+third_party/

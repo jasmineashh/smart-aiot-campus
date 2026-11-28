@@ -2,11 +2,17 @@
 Seed a DEMO database with simulated campus people, real face embeddings,
 room cameras, a bus camera and a few days of attendance.
 
-Run it ONLY against a local or test database, never the team's shared one.
+Run it ONLY against an isolated development database, never production.
 
-Usage (inside biometrics/face-service, with .venv active):
-    export DEVICE_KEY="your-device-key"
-    python seed_demo.py --faces dataset/pins --cars "dataset/ealpr/EALPR- Plates dataset"
+Default mode is a DRY RUN: it builds the plan and writes people_mapping.csv,
+but sends nothing to the API. Use --apply to import.
+
+Usage (inside biometrics/face-service, with .venv active, backend running):
+    python seed_demo.py --faces dataset/pins --cars "dataset/ealpr/EALPR- Plates dataset"           # dry run
+    python seed_demo.py --faces dataset/pins --cars "dataset/ealpr/EALPR- Plates dataset" --apply   # import
+
+--apply logs in as an administrator (CAMPUS_ADMIN_ID, default TEST-ADMIN-001,
+password asked securely) and uses the device key (DEVICE_KEY, or asked securely).
 
 Faces come from the Pins dataset, cars from the EALPR dataset (Egyptian plates).
 Each student / staff member gets one car; the link is saved in people_mapping.csv.
@@ -19,11 +25,12 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import cv2
-import requests
+from getpass import getpass
 
-API = os.environ.get("CAMPUS_API", "http://localhost:5200").rstrip("/")
-KEY = os.environ.get("DEVICE_KEY")
+import cv2
+
+from api_client import CampusApiClient
+
 CAIRO = timezone(timedelta(hours=2))
 IMAGE_TYPES = {".jpg", ".jpeg", ".png"}
 SEED = 42
@@ -54,17 +61,16 @@ CAMERAS = [
 ROOM_CAMERAS = [c for c in CAMERAS if c[1].startswith("G-") and c[1] != "G-Entrance"]
 STAFF_ONLY_ROOM = "G-041"  # lab: staff only 08:00-18:00, so students there get "Denied" alerts
 
-session = requests.Session()
+client: CampusApiClient | None = None
 
 
-def call(method, path, device=False, **kwargs):
-    headers = kwargs.pop("headers", {})
+def call(method, path, device=False, json=None):
+    """Device endpoints (faces, recognition) use the device key;
+    everything else uses the authenticated admin session (+ CSRF for writes)."""
+    kwargs = {"json": json} if json is not None else {}
     if device:
-        headers["X-Device-Key"] = KEY
-    r = session.request(method, f"{API}{path}", headers=headers, timeout=60, **kwargs)
-    if r.status_code >= 400:
-        raise RuntimeError(f"{method} {path} -> {r.status_code}: {r.text[:300]}")
-    return r.json() if r.content else None
+        return client.device_request(method, path, **kwargs)
+    return client.admin_request(method, path, **kwargs)
 
 
 def find_people_folders(root: Path):
@@ -292,34 +298,58 @@ def write_mapping(people, path="people_mapping.csv"):
 
 
 def main():
+    global client
     ap = argparse.ArgumentParser()
     ap.add_argument("--faces", default="dataset/pins")
-    ap.add_argument("--cars", default="", help="EALPR vehicles folder (optional)")
+    ap.add_argument("--cars", default="", help="EALPR plates folder (optional)")
     ap.add_argument("--people", type=int, default=0, help="0 = everyone in the dataset")
     ap.add_argument("--photos", type=int, default=3, help="face photos to enroll per person")
     ap.add_argument("--days", type=int, default=3, help="days of simulated attendance (incl. today)")
     ap.add_argument("--skip-faces", action="store_true")
     ap.add_argument("--skip-attendance", action="store_true")
+    ap.add_argument("--apply", action="store_true", help="Explicitly enable database import.")
     args = ap.parse_args()
 
-    if not KEY:
-        sys.exit("Set the device key first:  export DEVICE_KEY=\"...\"")
     folders = find_people_folders(Path(args.faces))
     if not folders:
         sys.exit(f"No person folders with photos found under {args.faces}")
-    print(f"Found {len(folders)} people in the dataset. API: {API}")
+    print(f"Found {len(folders)} people in the dataset.")
 
     rng = random.Random(SEED)
     people = build_people(folders, args.people, rng)
     assign_transport(people, args.cars, random.Random(SEED + 1))
-    ensure_people(people)
     write_mapping(people)
-    if not args.skip_faces:
-        enroll_faces(people, args.photos)
-    cams = ensure_cameras()
-    if not args.skip_attendance:
-        simulate_attendance(people, cams, args.days, rng)
-    print("Done. Open the dashboard to see the data.")
+
+    if not args.apply:
+        print("\nDRY RUN ONLY")
+        print("No API requests were sent. No database records were changed.")
+        print("Run again with --apply to import into the development database.")
+        return
+
+    if input("Confirm isolated development database by typing IMPORT-DEMO: ") != "IMPORT-DEMO":
+        sys.exit("Import cancelled.")
+
+    client = CampusApiClient()
+    if not client.device_key:
+        client.device_key = getpass("Enter development device API key: ")
+    admin_id = os.getenv("CAMPUS_ADMIN_ID", "TEST-ADMIN-001")
+    logged_in = False
+    try:
+        client.login_admin(admin_id, getpass(f"Password for {admin_id}: "))
+        logged_in = True
+        ensure_people(people)
+        if not args.skip_faces:
+            enroll_faces(people, args.photos)
+        cams = ensure_cameras()
+        if not args.skip_attendance:
+            simulate_attendance(people, cams, args.days, rng)
+        print("Done. Open the dashboard to see the data.")
+    finally:
+        try:
+            if logged_in:
+                client.logout()
+        finally:
+            client.close()
 
 
 if __name__ == "__main__":
