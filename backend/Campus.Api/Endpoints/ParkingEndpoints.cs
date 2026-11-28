@@ -20,12 +20,26 @@ public static class ParkingEndpoints
     public static void MapParkingEndpoints(
         this WebApplication app)
     {
-        // Only authenticated university users
-        // can access parking information.
         var parking = app.MapGroup("/api/parking")
             .RequireAuthorization();
 
+        // =========================================
+        // GET VEHICLE CATALOG
+        // =========================================
+
+        parking.MapGet("/vehicle-catalog", () =>
+        {
+            return Results.Ok(new
+            {
+                Brands = VehicleCatalogService.GetBrands(),
+                Colors = VehicleCatalogService.GetColors()
+            });
+        });
+
+        // =========================================
         // GET ALL PARKING ZONES
+        // =========================================
+
         parking.MapGet("/zones", async (
             CampusDbContext db) =>
         {
@@ -66,7 +80,10 @@ public static class ParkingEndpoints
             return Results.Ok(zones);
         });
 
-        // GET VEHICLES OWNED BY THE LOGGED-IN USER
+        // =========================================
+        // GET VEHICLES OWNED BY LOGGED-IN USER
+        // =========================================
+
         parking.MapGet("/my-vehicles", async (
             HttpContext http,
             CampusDbContext db) =>
@@ -102,7 +119,10 @@ public static class ParkingEndpoints
             return Results.Ok(vehicles);
         });
 
+        // =========================================
         // REGISTER A NEW VEHICLE
+        // =========================================
+
         parking.MapPost("/my-vehicles", async (
             RegisterVehicleRequest request,
             HttpContext http,
@@ -110,6 +130,7 @@ public static class ParkingEndpoints
             CampusDbContext db) =>
         {
             // 1. Validate CSRF token.
+
             if (!await HasValidCsrfToken(
                 http, antiforgery))
             {
@@ -119,7 +140,8 @@ public static class ParkingEndpoints
                 });
             }
 
-            // 2. Identify the authenticated owner.
+            // 2. Identify authenticated owner.
+
             var ownerId = http.User.FindFirst(
                 ClaimTypes.NameIdentifier
             )?.Value;
@@ -129,7 +151,8 @@ public static class ParkingEndpoints
                 return Results.Unauthorized();
             }
 
-            // 3. Verify that the account remains active.
+            // 3. Verify active account.
+
             bool activeAccount = await db.Users
                 .AsNoTracking()
                 .AnyAsync(u =>
@@ -141,7 +164,8 @@ public static class ParkingEndpoints
                 return Results.Unauthorized();
             }
 
-            // 4. Normalize and validate the plate.
+            // 4. Normalize and validate license plate.
+
             string normalizedPlate =
                 LicensePlateService.NormalizePlate(
                     request.PlateNumber);
@@ -157,30 +181,11 @@ public static class ParkingEndpoints
                 });
             }
 
-            // 5. Validate vehicle information.
-            string make =
-                request.Make?.Trim() ?? string.Empty;
+            // 5. Check vehicle input length.
 
-            string model =
-                request.Model?.Trim() ?? string.Empty;
-
-            string color =
-                request.Color?.Trim() ?? string.Empty;
-
-            if (string.IsNullOrWhiteSpace(make) ||
-                string.IsNullOrWhiteSpace(model) ||
-                string.IsNullOrWhiteSpace(color))
-            {
-                return Results.BadRequest(new
-                {
-                    message =
-                        "Car brand, model and color are required."
-                });
-            }
-
-            if (make.Length > 80 ||
-                model.Length > 80 ||
-                color.Length > 50)
+            if ((request.Make?.Length ?? 0) > 80 ||
+                (request.Model?.Length ?? 0) > 80 ||
+                (request.Color?.Length ?? 0) > 50)
             {
                 return Results.BadRequest(new
                 {
@@ -190,7 +195,28 @@ public static class ParkingEndpoints
                 });
             }
 
-            // 6. Check whether the plate already exists.
+            // 6. Validate against the central vehicle catalog.
+
+            bool validVehicle =
+                VehicleCatalogService.TryValidateVehicle(
+                    request.Make,
+                    request.Model,
+                    request.Color,
+                    out string make,
+                    out string model,
+                    out string color,
+                    out string validationError);
+
+            if (!validVehicle)
+            {
+                return Results.BadRequest(new
+                {
+                    message = validationError
+                });
+            }
+
+            // 7. Check for duplicate license plates.
+
             bool duplicate = await db.Vehicles
                 .AsNoTracking()
                 .AnyAsync(v =>
@@ -206,7 +232,8 @@ public static class ParkingEndpoints
                 });
             }
 
-            // 7. Create the vehicle registration.
+            // 8. Create vehicle registration.
+
             var vehicle = new Vehicle
             {
                 Id = Guid.NewGuid(),
@@ -235,7 +262,8 @@ public static class ParkingEndpoints
 
             db.Vehicles.Add(vehicle);
 
-            // 8. Persist the registration.
+            // 9. Persist vehicle in PostgreSQL.
+
             try
             {
                 await db.SaveChangesAsync();
@@ -248,7 +276,6 @@ public static class ParkingEndpoints
                     pg.ConstraintName ==
                         "IX_Vehicles_NormalizedPlateNumber")
             {
-                // Protect against concurrent duplicate requests.
                 return Results.Conflict(new
                 {
                     message =
@@ -256,7 +283,8 @@ public static class ParkingEndpoints
                 });
             }
 
-            // 9. Return the newly created registration.
+            // 10. Return successful registration.
+
             return Results.Json(new
             {
                 message =
@@ -285,7 +313,10 @@ public static class ParkingEndpoints
                 "Professor",
                 "Staff"));
 
+        // =========================================
         // GET ONE PARKING ZONE
+        // =========================================
+
         parking.MapGet("/zones/{id:guid}", async (
             Guid id,
             CampusDbContext db) =>
@@ -323,7 +354,10 @@ public static class ParkingEndpoints
                 : Results.Ok(zone);
         });
 
+        // =========================================
         // ADMIN: GET ALL REGISTERED VEHICLES
+        // =========================================
+
         parking.MapGet("/admin/vehicles", async (
             CampusDbContext db) =>
         {
@@ -361,7 +395,10 @@ public static class ParkingEndpoints
             policy.RequireRole("Admin"));
     }
 
-    // CSRF validation helper
+    // =========================================
+    // CSRF VALIDATION HELPER
+    // =========================================
+
     private static async Task<bool> HasValidCsrfToken(
         HttpContext context,
         IAntiforgery antiforgery)
