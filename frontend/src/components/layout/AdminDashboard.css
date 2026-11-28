@@ -1,0 +1,513 @@
+
+.sad-shell {
+  --sad-navy: #14283f;
+  --sad-navy-dark: #102236;
+  --sad-sidebar-text: #b7c8db;
+  --sad-accent: #78aaf2;
+  --sad-background: #f5f7fb;
+  --sad-border: #e2e8f0;
+  --sad-text: #1e293b;
+  --sad-muted: #64748b;
+
+  display: flex;
+  align-items: flex-start;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--sad-background);
+  color: var(--sad-text);
+}
+
+.sad-shell *,
+.sad-shell *::before,
+.sad-shell *::after {
+  box-sizing: border-box;
+}
+
+/* ==========================================
+   ADMINISTRATOR SIDEBAR
+   ========================================== */
+
+.sad-sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  width: 260px;
+  height: 100vh;
+  height: 100dvh;
+  flex-shrink: 0;
+  padding: 26px 16px 18px;
+  overflow-y: auto;
+  background: var(--sad-navy);
+  color: #ffffff;
+}
+
+.sad-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sad-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 10px 32px;
+}
+
+.sad-brand-logo {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 12px;
+  background: #3267a4;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.sad-brand-text {
+  min-width: 0;
+}
+
+.sad-brand-text strong,
+.sad-brand-text span {
+  display: block;
+}
+
+.sad-brand-text strong {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.sad-brand-text span {
+  margin-top: 5px;
+  color: #a0b5cd;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ==========================================
+   NAVIGATION
+   ========================================== */
+
+.sad-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.sad-navigation-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sad-navigation-label {
+  padding: 0 12px;
+  margin-bottom: 6px;
+  color: #91a7bf;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+}
+
+.sad-sidebar .sad-navigation-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 46px;
+  padding: 12px 13px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--sad-sidebar-text);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.sad-navigation-link svg {
+  flex-shrink: 0;
+}
+
+.sad-sidebar .sad-navigation-link:hover {
+  background: rgb(255 255 255 / 7%);
+  color: #ffffff;
+}
+
+.sad-sidebar .sad-navigation-link.sad-active {
+  border-color: rgb(120 170 242 / 18%);
+  background: #254665;
+  color: #ffffff;
+  font-weight: 650;
+}
+
+.sad-navigation-link.sad-active::before {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--sad-accent);
+  content: '';
+}
+
+.sad-navigation-link.sad-active svg {
+  color: #a8ceff;
+}
+
+/* ==========================================
+   SIDEBAR ACCOUNT
+   ========================================== */
+
+.sad-sidebar-bottom {
+  margin-top: auto;
+  padding-top: 28px;
+}
+
+.sad-account {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 17px 6px;
+  border-top: 1px solid rgb(255 255 255 / 12%);
+}
+
+.sad-account-avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #2c4c6d;
+  color: #dcecff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sad-account-details {
+  min-width: 0;
+}
+
+.sad-account-details strong,
+.sad-account-details span {
+  display: block;
+}
+
+.sad-account-details strong {
+  color: #f1f5f9;
+  font-size: 12px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.sad-account-details span {
+  margin-top: 5px;
+  color: #9db2c8;
+  font-size: 11px;
+}
+
+.sad-sidebar .sad-logout-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 41px;
+  padding: 10px 14px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 8px;
+  background: rgb(255 255 255 / 4%);
+  color: #dce7f4;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.sad-sidebar .sad-logout-button:hover:not(:disabled) {
+  background: rgb(255 255 255 / 10%);
+  color: #ffffff;
+}
+
+.sad-logout-button:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.sad-sidebar-footer {
+  margin: 18px 0 0;
+  color: #91a7bf;
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* ==========================================
+   WORKSPACE AND HEADER
+   ========================================== */
+
+.sad-workspace {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+}
+
+.sad-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 76px;
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--sad-border);
+  background: #ffffff;
+}
+
+.sad-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  color: var(--sad-muted);
+  font-size: 13px;
+}
+
+.sad-breadcrumb strong {
+  color: var(--sad-navy);
+  font-weight: 650;
+}
+
+.sad-topbar-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.sad-topbar-account-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.sad-topbar-account-text strong {
+  color: var(--sad-navy);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.sad-topbar-account-text span {
+  color: var(--sad-muted);
+  font-size: 11px;
+}
+
+.sad-topbar-avatar {
+  display: grid;
+  place-items: center;
+  width: 39px;
+  height: 39px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: #eaf0f9;
+  color: #315b8a;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+/* ==========================================
+   PAGE CONTENT
+   ========================================== */
+
+.sad-content {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+
+.sad-module-content {
+  min-width: 0;
+  padding: 32px;
+}
+
+/* ==========================================
+   MOBILE NAVIGATION
+   ========================================== */
+
+.sad-sidebar .sad-mobile-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 8px;
+  background: transparent;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.sad-sidebar button:focus-visible {
+  outline: 2px solid #a8ceff;
+  outline-offset: 3px;
+}
+
+/* ==========================================
+   RESPONSIVE LAYOUT
+   ========================================== */
+
+@media (max-width: 1100px) {
+  .sad-sidebar {
+    width: 232px;
+    padding-right: 13px;
+    padding-left: 13px;
+  }
+
+  .sad-topbar {
+    padding-right: 24px;
+    padding-left: 24px;
+  }
+
+  .sad-module-content {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 760px) {
+  .sad-shell {
+    flex-direction: column;
+  }
+
+  .sad-sidebar {
+    position: relative;
+    top: auto;
+    width: 100%;
+    height: auto;
+    padding: 15px 18px;
+    overflow: visible;
+  }
+
+  .sad-brand {
+    padding: 0;
+  }
+
+  .sad-sidebar .sad-mobile-toggle {
+    display: inline-flex;
+  }
+
+  .sad-navigation {
+    display: none;
+    gap: 20px;
+    padding-top: 25px;
+  }
+
+  .sad-navigation.sad-navigation-open {
+    display: flex;
+  }
+
+  .sad-sidebar-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-top: 15px;
+    padding-top: 13px;
+    border-top: 1px solid rgb(255 255 255 / 12%);
+  }
+
+  .sad-account {
+    min-width: 0;
+    padding: 0;
+    border-top: none;
+  }
+
+  .sad-account-avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .sad-sidebar .sad-logout-button {
+    width: auto;
+    min-height: 36px;
+    flex-shrink: 0;
+  }
+
+  .sad-sidebar-footer {
+    display: none;
+  }
+
+  .sad-workspace {
+    width: 100%;
+    min-height: auto;
+  }
+
+  .sad-topbar {
+    min-height: 62px;
+    padding: 14px 18px;
+  }
+
+  .sad-topbar-account-text {
+    display: none;
+  }
+
+  .sad-breadcrumb {
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .sad-module-content {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 400px) {
+  .sad-sidebar {
+    padding: 13px 12px;
+  }
+
+  .sad-topbar {
+    padding: 12px;
+  }
+
+  .sad-module-content {
+    padding: 12px;
+  }
+
+  .sad-account-details strong {
+    font-size: 11px;
+  }
+
+  .sad-account-details span {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sad-navigation-link,
+  .sad-logout-button {
+    transition: none;
+  }
+}

@@ -1,3 +1,4 @@
+
 import {
   useEffect,
   useState,
@@ -12,6 +13,7 @@ import {
 } from './services/authService'
 
 import CampusDashboard from './components/layout/CampusDashboard'
+import AdminDashboard from './components/layout/AdminDashboard'
 
 import './App.css'
 
@@ -145,10 +147,22 @@ function App() {
   }
 
   // ==========================================
-  // AUTHENTICATED CAMPUS DASHBOARD
+  // AUTHENTICATED ROLE-BASED DASHBOARD ROUTING
   // ==========================================
 
   if (!checkingSession && user) {
+    const isAdmin = user.roles.includes('Admin')
+
+    if (isAdmin) {
+      return (
+        <AdminDashboard
+          user={user}
+          onLogout={handleLogout}
+          loggingOut={loading}
+        />
+      )
+    }
+
     return (
       <CampusDashboard
         user={user}
